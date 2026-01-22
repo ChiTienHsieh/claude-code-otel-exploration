@@ -5,6 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-v2.1.1+-blue)](https://docs.anthropic.com/en/docs/claude-code)
 [![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-1.0-blueviolet)](https://opentelemetry.io/)
+[![Verify OTEL Stack](https://github.com/ChiTienHsieh/claude-code-otel-exploration/actions/workflows/verify.yml/badge.svg)](https://github.com/ChiTienHsieh/claude-code-otel-exploration/actions/workflows/verify.yml)
 
 ## Disclaimer
 
@@ -36,7 +37,7 @@
 
 ```bash
 # Clone
-git clone https://github.com/user/claude-code-otel-exploration
+git clone https://github.com/ChiTienHsieh/claude-code-otel-exploration
 cd claude-code-otel-exploration/verify
 
 # 啟動 observability stack

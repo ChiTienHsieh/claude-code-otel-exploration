@@ -5,7 +5,7 @@ A comprehensive guide to monitoring Claude Code using OpenTelemetry.
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-v2.1.1+-blue)](https://docs.anthropic.com/en/docs/claude-code)
 [![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-1.0-blueviolet)](https://opentelemetry.io/)
-[![Verify OTEL Stack](https://github.com/user/claude-code-otel-exploration/actions/workflows/verify.yml/badge.svg)](https://github.com/user/claude-code-otel-exploration/actions/workflows/verify.yml)
+[![Verify OTEL Stack](https://github.com/ChiTienHsieh/claude-code-otel-exploration/actions/workflows/verify.yml/badge.svg)](https://github.com/ChiTienHsieh/claude-code-otel-exploration/actions/workflows/verify.yml)
 
 ## Disclaimer
 
@@ -36,7 +36,7 @@ Want to try it yourself? This repo provides a one-click test environment:
 
 ```bash
 # Clone
-git clone https://github.com/user/claude-code-otel-exploration
+git clone https://github.com/ChiTienHsieh/claude-code-otel-exploration
 cd claude-code-otel-exploration/verify
 
 # Start observability stack
