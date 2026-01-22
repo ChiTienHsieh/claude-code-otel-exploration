@@ -1,0 +1,104 @@
+# Verify that the OTEL stack configuration is valid
+name: Verify OTEL Stack
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'verify/**'
+      - '.github/workflows/verify.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'verify/**'
+      - '.github/workflows/verify.yml'
+
+jobs:
+  validate-config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate docker-compose.yml
+        run: |
+          cd verify
+          docker compose config --quiet
+          echo "docker-compose.yml is valid"
+
+      - name: Validate OTEL Collector config
+        run: |
+          # Use otelcol-contrib to validate the config
+          docker run --rm \
+            -v ${{ github.workspace }}/verify/otel-collector-config.yaml:/etc/otel/config.yaml:ro \
+            otel/opentelemetry-collector-contrib:0.96.0 \
+            validate --config=/etc/otel/config.yaml
+          echo "otel-collector-config.yaml is valid"
+
+  test-stack-startup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start OTEL stack
+        run: |
+          cd verify
+          docker compose up -d
+          sleep 10  # Wait for services to start
+
+      - name: Check all containers are running
+        run: |
+          cd verify
+          # Check that all 4 containers are running
+          RUNNING=$(docker compose ps --format json | jq -s 'length')
+          if [ "$RUNNING" -ne 4 ]; then
+            echo "Expected 4 containers, got $RUNNING"
+            docker compose ps
+            exit 1
+          fi
+          echo "All 4 containers are running"
+
+      - name: Check Prometheus targets
+        run: |
+          # Wait for Prometheus to scrape targets
+          sleep 15
+
+          # Check targets are up
+          TARGETS=$(curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets | length')
+          if [ "$TARGETS" -lt 2 ]; then
+            echo "Expected at least 2 targets, got $TARGETS"
+            curl -s http://localhost:9090/api/v1/targets | jq .
+            exit 1
+          fi
+          echo "Prometheus has $TARGETS active targets"
+
+      - name: Check Grafana health
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/health)
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Grafana health check failed with status $STATUS"
+            exit 1
+          fi
+          echo "Grafana is healthy"
+
+      - name: Check OTEL Collector metrics endpoint
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8888/metrics)
+          if [ "$STATUS" -ne 200 ]; then
+            echo "OTEL Collector metrics endpoint failed with status $STATUS"
+            exit 1
+          fi
+          echo "OTEL Collector metrics endpoint is healthy"
+
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          cd verify
+          docker compose logs
+
+      - name: Cleanup
+        if: always()
+        run: |
+          cd verify
+          docker compose down -v
