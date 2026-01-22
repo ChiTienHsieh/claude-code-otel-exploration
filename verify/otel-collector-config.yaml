@@ -1,0 +1,82 @@
+# OpenTelemetry Collector Configuration
+# 用於接收 Claude Code 的 telemetry 資料
+#
+# 參考: https://opentelemetry.io/docs/collector/configuration/
+
+receivers:
+  # OTLP receiver - Claude Code 預設使用這個
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # Batch processor - 批次處理提升效能
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+    send_batch_max_size: 2048
+
+  # Memory limiter - 防止 OOM
+  memory_limiter:
+    check_interval: 5s
+    limit_mib: 512
+    spike_limit_mib: 128
+
+  # Resource processor - 加入額外標籤
+  resource:
+    attributes:
+      - key: environment
+        value: "verification"
+        action: upsert
+      - key: collector.name
+        value: "claude-code-otel-verification"
+        action: upsert
+
+exporters:
+  # Debug exporter - 輸出到 console（驗證用）
+  debug:
+    verbosity: detailed
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+  # Prometheus exporter - 給 Prometheus 抓取
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: "claude_code"
+    const_labels:
+      source: "otel-collector"
+
+  # OTLP exporter to Jaeger
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    # Traces pipeline
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [debug, otlp/jaeger]
+
+    # Metrics pipeline
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [debug, prometheus]
+
+    # Logs pipeline
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [debug]
+
+  telemetry:
+    logs:
+      level: info
+    metrics:
+      address: 0.0.0.0:8888

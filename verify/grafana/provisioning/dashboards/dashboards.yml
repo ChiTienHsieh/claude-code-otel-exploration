@@ -1,0 +1,16 @@
+# Grafana Dashboard Provisioning
+# 自動載入 dashboards
+
+apiVersion: 1
+
+providers:
+  - name: 'Claude Code OTEL'
+    orgId: 1
+    folder: 'Claude Code'
+    folderUid: claude-code
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/json

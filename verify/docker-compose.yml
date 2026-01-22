@@ -1,0 +1,127 @@
+# Claude Code OTEL Verification Stack
+#
+# 這個 stack 提供完整的 observability 環境來驗證 Claude Code 的 OTEL 輸出
+# 包含：OTEL Collector、Prometheus、Grafana
+#
+# 使用方式：
+#   1. cp .env.example .env
+#   2. 編輯 .env 填入你的 ANTHROPIC_API_KEY
+#   3. docker-compose up -d
+#   4. 開啟 Grafana: http://localhost:3000 (admin/admin)
+
+services:
+  # ============================================
+  # OTEL Collector - 接收並處理 telemetry 資料
+  # ============================================
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.96.0
+    container_name: otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8888:8888"   # Prometheus metrics (collector 自身)
+      - "8889:8889"   # Prometheus exporter (給 Claude Code metrics)
+    restart: unless-stopped
+    networks:
+      - otel-net
+
+  # ============================================
+  # Prometheus - 儲存 metrics
+  # ============================================
+  prometheus:
+    image: prom/prometheus:v2.50.1
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    networks:
+      - otel-net
+    depends_on:
+      - otel-collector
+
+  # ============================================
+  # Grafana - 視覺化 dashboard
+  # ============================================
+  grafana:
+    image: grafana/grafana:10.4.1
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      # 自動配置 data sources
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks:
+      - otel-net
+    depends_on:
+      - prometheus
+
+  # ============================================
+  # Jaeger - Distributed Tracing (Optional)
+  # ============================================
+  jaeger:
+    image: jaegertracing/all-in-one:1.54
+    container_name: jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "14250:14250"  # gRPC
+    restart: unless-stopped
+    networks:
+      - otel-net
+
+  # ============================================
+  # YOLO CC - Containerized Claude Code (Optional)
+  # ============================================
+  # 使用方式: docker-compose --profile yolo up -d
+  # 進入: docker-compose exec yolo-cc claude
+  yolo-cc:
+    build:
+      context: ./yolo-cc
+      dockerfile: Dockerfile
+    container_name: yolo-cc
+    profiles:
+      - yolo
+    environment:
+      # 必須從外部傳入
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # OTEL 設定（已在 Dockerfile 設定，可覆蓋）
+      - CLAUDE_CODE_ENABLE_TELEMETRY=1
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+    volumes:
+      # 可選：掛載本地目錄來測試
+      - ./workspace:/workspace/local
+    stdin_open: true
+    tty: true
+    networks:
+      - otel-net
+    depends_on:
+      - otel-collector
+
+networks:
+  otel-net:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:

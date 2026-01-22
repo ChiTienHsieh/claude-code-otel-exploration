@@ -1,0 +1,19 @@
+# Prometheus Configuration
+# 抓取 OTEL Collector 輸出的 Claude Code metrics
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # OTEL Collector 自身的 metrics
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['otel-collector:8888']
+    metrics_path: /metrics
+
+  # Claude Code metrics (透過 OTEL Collector Prometheus exporter)
+  - job_name: 'claude-code'
+    static_configs:
+      - targets: ['otel-collector:8889']
+    metrics_path: /metrics
