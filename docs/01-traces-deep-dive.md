@@ -1,54 +1,54 @@
-# OpenTelemetry Traces Deep Dive for Claude Code
+# OpenTelemetry Traces 深度探索 - Claude Code
 
-> **Status**: Experimental/Unclear Support
-> **Last Updated**: 2026-02-03
+> **狀態**：實驗性/支援狀態不明確
+> **最後更新**：2026-02-03
 
-## Overview
+## 概述
 
-This document explores the tracing capabilities in Claude Code's OpenTelemetry integration. Unlike Metrics and Logs which are officially documented, Traces support remains experimental.
+本文件探討 Claude Code 的 OpenTelemetry 整合中的 tracing 功能。與 Metrics 和 Logs 已有官方文件記載不同，Traces 的支援仍處於實驗階段。
 
-## Current State of Traces Support
+## Traces 支援現況
 
-### What We Know
+### 已知資訊
 
-1. **Environment Variable Exists**: `OTEL_TRACES_EXPORTER` is recognized by Claude Code
-2. **Official Documentation**: Only mentions Metrics and Logs explicitly
-3. **Observed Behavior**: Claude Code may not actively generate trace spans
+1. **環境變數存在**：Claude Code 可識別 `OTEL_TRACES_EXPORTER`
+2. **官方文件**：僅明確提及 Metrics 和 Logs
+3. **觀察到的行為**：Claude Code 可能不會主動產生 trace spans
 
-### Configuration
+### 設定方式
 
 ```bash
-# Enable traces exporter (experimental)
+# 啟用 traces exporter（實驗性）
 export OTEL_TRACES_EXPORTER=otlp
 
-# Or for debugging
+# 或用於除錯
 export OTEL_TRACES_EXPORTER=console
 
-# Multiple exporters
+# 多個 exporters
 export OTEL_TRACES_EXPORTER=console,otlp
 ```
 
-### Trace Sampling Configuration
+### Trace Sampling 設定
 
 ```bash
-# Sampling strategy
+# Sampling 策略
 export OTEL_TRACES_SAMPLER=parentbased_traceidratio
 
-# Sampling ratio (0.0 to 1.0)
-export OTEL_TRACES_SAMPLER_ARG=0.1  # Sample 10% of traces
+# Sampling 比例（0.0 到 1.0）
+export OTEL_TRACES_SAMPLER_ARG=0.1  # 取樣 10% 的 traces
 
-# Always sample (for debugging)
+# 全部取樣（用於除錯）
 export OTEL_TRACES_SAMPLER=always_on
 
-# Never sample
+# 不取樣
 export OTEL_TRACES_SAMPLER=always_off
 ```
 
-## Expected Trace Structure
+## 預期的 Trace 結構
 
-If traces were fully supported, you would expect to see spans like:
+若 traces 完整支援，預期會看到以下 spans：
 
-### Hypothetical Span Hierarchy
+### 假設的 Span 階層
 
 ```
 claude_code.session (root span)
@@ -63,24 +63,24 @@ claude_code.session (root span)
 └── claude_code.session_complete
 ```
 
-### Standard Span Attributes
+### 標準 Span Attributes
 
-Based on OTEL semantic conventions, traces would include:
+根據 OTEL semantic conventions，traces 會包含：
 
-| Attribute | Description | Example |
-|-----------|-------------|---------|
-| `service.name` | Service identifier | `claude-code` |
-| `service.version` | Claude Code version | `2.1.1` |
-| `session.id` | Unique session ID | `abc123` |
-| `user.id` | User identifier | (if enabled) |
-| `tool.name` | Tool being executed | `Bash` |
-| `api.model` | Model being used | `claude-sonnet-4-20250514` |
+| Attribute | 說明 | 範例 |
+|-----------|------|------|
+| `service.name` | 服務識別碼 | `claude-code` |
+| `service.version` | Claude Code 版本 | `2.1.1` |
+| `session.id` | 唯一 session ID | `abc123` |
+| `user.id` | 使用者識別碼 | （若啟用） |
+| `tool.name` | 執行中的工具 | `Bash` |
+| `api.model` | 使用的模型 | `claude-sonnet-4-20250514` |
 
-## Testing Traces Support
+## 測試 Traces 支援
 
-### Step 1: Configure OTEL Collector for Traces
+### 步驟 1：設定 OTEL Collector 接收 Traces
 
-Add to your `otel-collector-config.yaml`:
+在 `otel-collector-config.yaml` 中加入：
 
 ```yaml
 receivers:
@@ -118,7 +118,7 @@ service:
       exporters: [debug, jaeger]
 ```
 
-### Step 2: Enable Traces in Claude Code
+### 步驟 2：在 Claude Code 中啟用 Traces
 
 ```bash
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
@@ -127,75 +127,75 @@ export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 ```
 
-### Step 3: Verify Trace Output
+### 步驟 3：驗證 Trace 輸出
 
 ```bash
-# Run Claude Code
+# 執行 Claude Code
 claude "hello world"
 
-# Check Jaeger UI
+# 檢查 Jaeger UI
 open http://localhost:16686
 
-# Or check collector debug logs
+# 或檢查 collector debug logs
 docker logs otel-collector 2>&1 | grep -i "trace"
 ```
 
-## Working with Traces Data
+## 處理 Traces 資料
 
-### Jaeger Queries
+### Jaeger 查詢
 
-Once traces appear in Jaeger:
+一旦 traces 出現在 Jaeger 中：
 
-1. **Find Slow Operations**:
-   - Sort by duration
-   - Filter by `error=true`
+1. **尋找慢速操作**：
+   - 依 duration 排序
+   - 篩選 `error=true`
 
-2. **Service Dependencies**:
-   - View service topology
-   - Identify bottlenecks
+2. **服務相依性**：
+   - 檢視服務拓撲
+   - 識別瓶頸
 
-3. **Compare Traces**:
-   - Compare similar operations
-   - Identify regression
+3. **比較 Traces**：
+   - 比較相似操作
+   - 識別效能退化
 
-### Correlating Traces with Logs
+### 關聯 Traces 與 Logs
 
-Use trace context propagation:
+使用 trace context propagation：
 
 ```bash
-# Trace context in logs
+# Logs 中的 trace context
 export OTEL_LOGS_EXPORTER=otlp
 export OTEL_TRACES_EXPORTER=otlp
 
-# Logs will include trace_id and span_id for correlation
+# Logs 將包含 trace_id 和 span_id 用於關聯
 ```
 
-## Implementing Custom Traces
+## 實作自訂 Traces
 
-If Claude Code doesn't generate traces natively, you can instrument wrapper scripts:
+若 Claude Code 原生不產生 traces，可以使用 wrapper scripts 進行 instrumentation：
 
-### Bash Wrapper with Trace Context
+### Bash Wrapper 搭配 Trace Context
 
 ```bash
 #!/bin/bash
-# claude-traced.sh - Wrapper that adds trace context
+# claude-traced.sh - 加入 trace context 的 wrapper
 
-# Generate trace ID (32 hex chars)
+# 產生 trace ID（32 個十六進位字元）
 TRACE_ID=$(openssl rand -hex 16)
-# Generate span ID (16 hex chars)
+# 產生 span ID（16 個十六進位字元）
 SPAN_ID=$(openssl rand -hex 8)
 
-# Set trace parent header
+# 設定 trace parent header
 export TRACEPARENT="00-${TRACE_ID}-${SPAN_ID}-01"
 
-# Record start time
+# 記錄開始時間
 START_TIME=$(date +%s%N)
 
-# Run Claude Code
+# 執行 Claude Code
 claude "$@"
 EXIT_CODE=$?
 
-# Record end time
+# 記錄結束時間
 END_TIME=$(date +%s%N)
 DURATION=$((($END_TIME - $START_TIME) / 1000000))
 
@@ -203,11 +203,11 @@ echo "Trace ID: $TRACE_ID, Duration: ${DURATION}ms"
 exit $EXIT_CODE
 ```
 
-### Python Wrapper with OpenTelemetry SDK
+### Python Wrapper 搭配 OpenTelemetry SDK
 
 ```python
 #!/usr/bin/env python3
-"""claude-traced.py - Python wrapper with full OTEL tracing"""
+"""claude-traced.py - 具有完整 OTEL tracing 的 Python wrapper"""
 
 import subprocess
 import sys
@@ -217,7 +217,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
 
-# Configure tracer
+# 設定 tracer
 resource = Resource.create({"service.name": "claude-code-wrapper"})
 provider = TracerProvider(resource=resource)
 processor = BatchSpanProcessor(OTLPSpanExporter())
@@ -256,70 +256,70 @@ if __name__ == "__main__":
 
 ### W3C Trace Context
 
-Claude Code should respect standard trace context headers:
+Claude Code 應遵循標準 trace context headers：
 
 ```bash
-# Set parent trace context
+# 設定 parent trace context
 export TRACEPARENT="00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01"
 
-# Optional: trace state
+# 可選：trace state
 export TRACESTATE="vendor1=value1,vendor2=value2"
 ```
 
 ### Baggage Propagation
 
 ```bash
-# Set baggage for downstream context
+# 設定 baggage 供下游使用
 export OTEL_PROPAGATORS=tracecontext,baggage
 ```
 
-## Recommendations
+## 建議
 
-### For Development
+### 開發環境
 
 ```bash
-# Use console exporter to see trace output
+# 使用 console exporter 查看 trace 輸出
 export OTEL_TRACES_EXPORTER=console
 export OTEL_TRACES_SAMPLER=always_on
 ```
 
-### For Production
+### 正式環境
 
 ```bash
-# Use OTLP with sampling
+# 使用 OTLP 搭配 sampling
 export OTEL_TRACES_EXPORTER=otlp
 export OTEL_TRACES_SAMPLER=parentbased_traceidratio
 export OTEL_TRACES_SAMPLER_ARG=0.1  # 10% sampling
 ```
 
-### For Debugging Issues
+### 除錯問題時
 
 ```bash
-# Enable all signals with debug output
+# 啟用所有 signals 搭配 debug 輸出
 export OTEL_TRACES_EXPORTER=console,otlp
 export OTEL_METRICS_EXPORTER=console,otlp
 export OTEL_LOGS_EXPORTER=console,otlp
 ```
 
-## Known Limitations
+## 已知限制
 
-1. **No Native Span Generation**: Claude Code may not create spans internally
-2. **Limited Instrumentation**: Tool executions may not be traced
-3. **No Distributed Tracing**: Cannot trace across multiple Claude Code instances
+1. **無原生 Span 產生**：Claude Code 內部可能不會建立 spans
+2. **有限的 Instrumentation**：工具執行可能不會被追蹤
+3. **無分散式追蹤**：無法跨多個 Claude Code 實例追蹤
 
-## Future Expectations
+## 未來展望
 
-Based on OpenTelemetry roadmap and Claude Code development:
+根據 OpenTelemetry 發展路線和 Claude Code 開發：
 
-1. **Native Span Support**: Expected in future versions
-2. **Tool-Level Tracing**: Detailed spans for each tool execution
-3. **API Call Tracing**: Spans for Anthropic API interactions
-4. **Semantic Conventions**: Adoption of LLM-specific semantic conventions
+1. **原生 Span 支援**：預期在未來版本中實現
+2. **工具層級追蹤**：每個工具執行的詳細 spans
+3. **API 呼叫追蹤**：Anthropic API 互動的 spans
+4. **Semantic Conventions**：採用 LLM 專用的 semantic conventions
 
-## Monitoring Trace Pipeline Health
+## 監控 Trace Pipeline 健康狀態
 
 ```yaml
-# Collector metrics for trace pipeline
+# Collector metrics 用於 trace pipeline
 service:
   telemetry:
     metrics:
@@ -327,13 +327,13 @@ service:
       address: 0.0.0.0:8888
 ```
 
-Key metrics to monitor:
-- `otelcol_exporter_sent_spans` - Spans exported successfully
-- `otelcol_exporter_send_failed_spans` - Failed span exports
-- `otelcol_processor_batch_batch_send_size` - Batch sizes
+監控的關鍵指標：
+- `otelcol_exporter_sent_spans` - 成功匯出的 spans
+- `otelcol_exporter_send_failed_spans` - 失敗的 span 匯出
+- `otelcol_processor_batch_batch_send_size` - Batch 大小
 
-## Related Documentation
+## 相關文件
 
-- [Jaeger/Distributed Tracing Guide](./09-jaeger-tracing.md)
-- [OTEL Collector Setup](../TUTORIAL_OTEL_zh-TW.md#第三章otel-collector-設定)
-- [Official OpenTelemetry Traces Docs](https://opentelemetry.io/docs/concepts/signals/traces/)
+- [Jaeger/分散式追蹤指南](./09-jaeger-tracing.md)
+- [OTEL Collector 設定](../TUTORIAL_OTEL_zh-TW.md#第三章otel-collector-設定)
+- [官方 OpenTelemetry Traces 文件](https://opentelemetry.io/docs/concepts/signals/traces/)
