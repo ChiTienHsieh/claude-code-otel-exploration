@@ -178,6 +178,7 @@ export OTEL_TRACES_EXPORTER=otlp
 
 ```bash
 #!/bin/bash
+set -euo pipefail
 # claude-traced.sh - 加入 trace context 的 wrapper
 
 # 產生 trace ID（32 個十六進位字元）

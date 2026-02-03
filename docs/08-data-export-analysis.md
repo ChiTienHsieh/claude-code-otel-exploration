@@ -1,22 +1,22 @@
-# Data Export & Analysis Guide
+# 資料匯出與分析指南
 
-> **Last Updated**: 2026-02-03
+> **最後更新**：2026-02-03
 
-A comprehensive guide to exporting, querying, and analyzing Claude Code telemetry data using PromQL and other tools.
+本指南全面說明如何使用 PromQL 和其他工具匯出、查詢和分析 Claude Code 遙測資料。
 
-## Table of Contents
+## 目錄
 
-- [PromQL Fundamentals](#promql-fundamentals)
-- [Essential Queries](#essential-queries)
-- [Advanced Analysis](#advanced-analysis)
-- [Data Export Methods](#data-export-methods)
-- [Analysis Workflows](#analysis-workflows)
-- [Visualization Tools](#visualization-tools)
-- [Reporting Templates](#reporting-templates)
+- [PromQL 基礎](#promql-基礎)
+- [基本查詢](#基本查詢)
+- [進階分析](#進階分析)
+- [資料匯出方法](#資料匯出方法)
+- [分析工作流程](#分析工作流程)
+- [視覺化工具](#視覺化工具)
+- [報告範本](#報告範本)
 
-## PromQL Fundamentals
+## PromQL 基礎
 
-### Basic Syntax
+### 基本語法
 
 ```promql
 # Metric selection
@@ -32,7 +32,7 @@ claude_code_session_count{team=~"eng.*"}
 claude_code_session_count{environment!="production"}
 ```
 
-### Common Functions
+### 常用函數
 
 ```promql
 # Rate of change (per second)
@@ -58,7 +58,7 @@ min(claude_code_cost_total)
 topk(5, claude_code_cost_total)
 ```
 
-### Time Range Modifiers
+### 時間範圍修飾符
 
 ```promql
 # Last 5 minutes
@@ -77,7 +77,7 @@ claude_code_session_count offset 1d
 claude_code_session_count @ 1704067200
 ```
 
-## Essential Queries
+## 基本查詢
 
 ### Session Metrics
 
@@ -98,7 +98,7 @@ claude_code_active_sessions
 histogram_quantile(0.95, sum(rate(claude_code_session_duration_bucket[5m])) by (le))
 ```
 
-### Token Usage
+### Token 使用量
 
 ```promql
 # Total input tokens (last 24h)
@@ -122,7 +122,7 @@ sum(claude_code_session_count)
 sum(increase(claude_code_tokens_input[24h])) by (model)
 ```
 
-### Cost Analysis
+### 成本分析
 
 ```promql
 # Total cost (last 24h)
@@ -145,7 +145,7 @@ sum(increase(claude_code_cost_total[7d]))
 -
 sum(increase(claude_code_cost_total[7d] offset 7d))
 
-# Month-to-date cost (本月至今成本)
+# Month-to-date cost（本月至今成本）
 # 使用 day_of_month() 函數計算動態時間範圍
 sum(increase(claude_code_cost_total[30d]))
   * (day_of_month(vector(time())) / 30)
@@ -167,7 +167,7 @@ sum(increase(claude_code_api_requests[1h])) by (status_code)
 histogram_quantile(0.99, sum(rate(claude_code_api_latency_bucket[5m])) by (le))
 ```
 
-### Tool Usage
+### 工具使用情況
 
 ```promql
 # Tool usage count
@@ -182,9 +182,9 @@ sum(increase(claude_code_tool_decisions{status="success"}[24h])) by (tool_name)
 sum(increase(claude_code_tool_decisions[24h])) by (tool_name)
 ```
 
-## Advanced Analysis
+## 進階分析
 
-### Anomaly Detection
+### 異常偵測
 
 ```promql
 # Z-score based anomaly (>2 standard deviations)
@@ -203,7 +203,7 @@ sum(rate(claude_code_cost_total[5m]))
 3 * avg_over_time(sum(rate(claude_code_cost_total[5m]))[24h:5m])
 ```
 
-### Trend Analysis
+### 趨勢分析
 
 ```promql
 # Linear regression slope (cost trend)
@@ -225,7 +225,7 @@ sum(increase(claude_code_cost_total[7d] offset 7d))
 * 100
 ```
 
-### Cohort Analysis
+### 群組分析
 
 ```promql
 # Cost by team and environment
@@ -240,7 +240,7 @@ count(
 count(claude_code_session_count) by (user_type)
 ```
 
-### Efficiency Metrics
+### 效率指標
 
 ```promql
 # Cost per token
@@ -253,7 +253,7 @@ sum(claude_code_cost_total) / (sum(claude_code_tokens_input) + sum(claude_code_t
 sum(claude_code_tokens_output) / sum(claude_code_tokens_input)
 ```
 
-## Data Export Methods
+## 資料匯出方法
 
 ### Prometheus HTTP API
 
@@ -281,7 +281,7 @@ curl -s "http://localhost:9090/api/v1/query_range" \
   > cost_by_team.csv
 ```
 
-### Python Export Script
+### Python 匯出腳本
 
 ```python
 #!/usr/bin/env python3
@@ -342,7 +342,7 @@ if __name__ == "__main__":
     main()
 ```
 
-### Export to BigQuery
+### 匯出到 BigQuery
 
 ```python
 #!/usr/bin/env python3
@@ -371,12 +371,13 @@ def export_to_bigquery(df: pd.DataFrame, project_id: str, dataset: str, table: s
     print(f"Loaded {job.output_rows} rows to {table_id}")
 ```
 
-## Analysis Workflows
+## 分析工作流程
 
-### Weekly Cost Analysis
+### 每週成本分析
 
 ```bash
 #!/bin/bash
+set -euo pipefail
 # weekly-analysis.sh
 
 PROMETHEUS_URL="http://localhost:9090"
@@ -413,7 +414,7 @@ EOF
 echo "Report generated: $OUTPUT_DIR/summary.md"
 ```
 
-### Jupyter Notebook Analysis
+### Jupyter Notebook 分析
 
 ```python
 # claude_code_analysis.ipynb
@@ -476,11 +477,11 @@ for user in top_users:
     print(f"  {user['metric'].get('user', 'unknown')}: ${float(user['value'][1]):.2f}")
 ```
 
-## Visualization Tools
+## 視覺化工具
 
-### Grafana Explore Queries
+### Grafana Explore 查詢
 
-Save these as Grafana Explore queries for ad-hoc analysis:
+將這些儲存為 Grafana Explore 查詢以進行即時分析：
 
 ```yaml
 # grafana-explore-queries.yaml
@@ -503,7 +504,7 @@ queries:
       / stddev_over_time(sum(rate(claude_code_cost_total[5m]))[7d:1h])
 ```
 
-### Matplotlib Dashboard Script
+### Matplotlib Dashboard 腳本
 
 ```python
 #!/usr/bin/env python3
@@ -579,46 +580,46 @@ if __name__ == "__main__":
     create_dashboard()
 ```
 
-## Reporting Templates
+## 報告範本
 
-### Executive Summary Template
+### 主管摘要範本
 
 ```markdown
-# Claude Code Usage Report
+# Claude Code 使用報告
 
-**Period**: {{start_date}} to {{end_date}}
-**Generated**: {{generation_date}}
+**期間**：{{start_date}} 至 {{end_date}}
+**產生時間**：{{generation_date}}
 
-## Executive Summary
+## 執行摘要
 
-| Metric | Value | Change |
+| 指標 | 數值 | 變化 |
 |--------|-------|--------|
-| Total Cost | ${{total_cost}} | {{cost_change}}% |
-| Total Sessions | {{total_sessions}} | {{sessions_change}}% |
-| Total Tokens | {{total_tokens}} | {{tokens_change}}% |
-| Active Users | {{active_users}} | {{users_change}}% |
+| 總成本 | ${{total_cost}} | {{cost_change}}% |
+| 總 Sessions | {{total_sessions}} | {{sessions_change}}% |
+| 總 Tokens | {{total_tokens}} | {{tokens_change}}% |
+| 活躍使用者 | {{active_users}} | {{users_change}}% |
 
-## Cost Breakdown by Team
+## 各團隊成本明細
 
-| Team | Cost | % of Total | Sessions | Avg Cost/Session |
+| 團隊 | 成本 | 佔比 | Sessions | 平均成本/Session |
 |------|------|------------|----------|------------------|
 {{#each teams}}
 | {{name}} | ${{cost}} | {{percentage}}% | {{sessions}} | ${{avg_cost}} |
 {{/each}}
 
-## Recommendations
+## 建議
 
 1. {{recommendation_1}}
 2. {{recommendation_2}}
 3. {{recommendation_3}}
 
-## Trends
+## 趨勢
 
 ![Cost Trend](./charts/cost_trend.png)
 ![Token Usage](./charts/token_trend.png)
 ```
 
-### Automated Report Generator
+### 自動化報告產生器
 
 ```python
 #!/usr/bin/env python3
@@ -662,8 +663,8 @@ if __name__ == "__main__":
     generate_report()
 ```
 
-## Related Documentation
+## 相關文件
 
-- [Cost Optimization Guide](./03-cost-optimization.md)
-- [Grafana Dashboard Development](./06-grafana-dashboards.md)
-- [CI/CD Integration Patterns](./07-cicd-integration.md)
+- [成本優化指南](./03-cost-optimization.md)
+- [Grafana Dashboard 開發](./06-grafana-dashboards.md)
+- [CI/CD 整合模式](./07-cicd-integration.md)

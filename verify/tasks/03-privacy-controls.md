@@ -47,7 +47,7 @@ claude "what is the value of MY_SECRET environment variable?"
 ### Step 3: 檢查 OTEL Collector Logs
 
 ```bash
-docker-compose logs otel-collector | grep -i "secret"
+docker compose logs otel-collector | grep -i "secret"
 ```
 
 **預期：不應該找到任何包含 "secret" 的內容**
@@ -68,7 +68,7 @@ claude "this is a test prompt for privacy verification"
 
 檢查 logs：
 ```bash
-docker-compose logs otel-collector | grep -i "privacy verification"
+docker compose logs otel-collector | grep -i "privacy verification"
 ```
 
 **預期：應該能找到 "privacy verification" 相關內容**
@@ -80,12 +80,12 @@ docker-compose logs otel-collector | grep -i "privacy verification"
 export OTEL_LOG_TOOL_CONTENT=true
 
 # 執行會產生 tool output 的指令
-claude "read the first 3 lines of docker-compose.yml"
+claude "read the first 3 lines of docker compose.yml"
 ```
 
 檢查 logs：
 ```bash
-docker-compose logs otel-collector | grep -i "docker-compose"
+docker compose logs otel-collector | grep -i "docker compose"
 ```
 
 ### Step 6: 恢復預設設定

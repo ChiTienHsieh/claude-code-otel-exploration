@@ -12,7 +12,7 @@
 
 ```bash
 cd verify
-docker-compose up -d
+docker compose up -d
 ```
 
 預期輸出：
@@ -28,7 +28,7 @@ docker-compose up -d
 ### Step 2: 檢查 Container 狀態
 
 ```bash
-docker-compose ps
+docker compose ps
 ```
 
 預期：所有 4 個 containers 都是 `running` 狀態。
@@ -37,7 +37,7 @@ docker-compose ps
 
 ```bash
 # 查看 logs
-docker-compose logs otel-collector | head -20
+docker compose logs otel-collector | head -20
 
 # 檢查 health endpoint
 curl http://localhost:8888/metrics | head -5

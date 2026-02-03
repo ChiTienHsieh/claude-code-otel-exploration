@@ -6,8 +6,8 @@
 # 使用方式：
 #   1. cp .env.example .env
 #   2. 編輯 .env 填入你的 ANTHROPIC_API_KEY
-#   3. docker-compose up -d
-#   4. 開啟 Grafana: http://localhost:3000 (admin/admin)
+#   3. docker compose up -d
+#   4. 開啟 Grafana: http://localhost:3000 (admin/admin) - CHANGE IN PRODUCTION!
 
 services:
   # ============================================
@@ -92,8 +92,8 @@ services:
   # ============================================
   # YOLO CC - Containerized Claude Code (Optional)
   # ============================================
-  # 使用方式: docker-compose --profile yolo up -d
-  # 進入: docker-compose exec yolo-cc claude
+  # 使用方式: docker compose --profile yolo up -d
+  # 進入: docker compose exec yolo-cc claude
   yolo-cc:
     build:
       context: ./yolo-cc

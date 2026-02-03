@@ -1,22 +1,22 @@
-# Migration & Upgrade Guide
+# Migration 與升級指南
 
-> **Last Updated**: 2026-02-03
+> **最後更新**：2026 年 2 月 3 日
 
-This guide covers migrating to Claude Code OTEL monitoring and upgrading existing deployments.
+本指南涵蓋遷移至 Claude Code OTEL 監控以及升級現有部署的相關內容。
 
-## Table of Contents
+## 目錄
 
-- [Migration Overview](#migration-overview)
-- [From No Telemetry to OTEL](#from-no-telemetry-to-otel)
-- [Upgrading Claude Code Versions](#upgrading-claude-code-versions)
-- [Upgrading OTEL Infrastructure](#upgrading-otel-infrastructure)
-- [Data Migration](#data-migration)
-- [Rollback Procedures](#rollback-procedures)
-- [Compatibility Matrix](#compatibility-matrix)
+- [Migration 概覽](#migration-概覽)
+- [從無 Telemetry 到 OTEL](#從無-telemetry-到-otel)
+- [升級 Claude Code 版本](#升級-claude-code-版本)
+- [升級 OTEL 基礎設施](#升級-otel-基礎設施)
+- [資料遷移](#資料遷移)
+- [Rollback 程序](#rollback-程序)
+- [相容性矩陣](#相容性矩陣)
 
-## Migration Overview
+## Migration 概覽
 
-### Migration Paths
+### Migration 路徑
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -42,20 +42,20 @@ This guide covers migrating to Claude Code OTEL monitoring and upgrading existin
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-## From No Telemetry to OTEL
+## 從無 Telemetry 到 OTEL
 
-### Phase 1: Planning (1-2 days)
+### 階段 1：規劃（1-2 天）
 
-#### Assessment Checklist
+#### 評估檢查清單
 
-- [ ] Identify all Claude Code deployment locations
-- [ ] Review network requirements (firewall rules, proxies)
-- [ ] Estimate telemetry data volume
-- [ ] Choose observability backend
-- [ ] Define resource attribute schema (teams, environments)
-- [ ] Review privacy requirements
+- [ ] 識別所有 Claude Code 部署位置
+- [ ] 審查網路需求（防火牆規則、proxies）
+- [ ] 估算 telemetry 資料量
+- [ ] 選擇 observability backend
+- [ ] 定義 resource attribute schema（團隊、環境）
+- [ ] 審查隱私需求
 
-#### Capacity Planning
+#### 容量規劃
 
 ```
 Estimated Data Volume:
@@ -69,9 +69,9 @@ Infrastructure Requirements:
 - Grafana: 256MB RAM minimum
 ```
 
-### Phase 2: Infrastructure Setup (1-2 days)
+### 階段 2：基礎設施設定（1-2 天）
 
-#### Step 1: Deploy OTEL Collector
+#### 步驟 1：部署 OTEL Collector
 
 ```bash
 # Create directory structure
@@ -123,7 +123,7 @@ docker run -d \
   --config=/etc/otel/collector.yaml
 ```
 
-#### Step 2: Deploy Prometheus
+#### 步驟 2：部署 Prometheus
 
 ```bash
 # Prometheus config
@@ -152,7 +152,7 @@ docker run -d \
   --web.enable-remote-write-receiver
 ```
 
-#### Step 3: Deploy Grafana
+#### 步驟 3：部署 Grafana
 
 ```bash
 docker run -d \
@@ -162,9 +162,9 @@ docker run -d \
   grafana/grafana:10.3.1
 ```
 
-### Phase 3: Client Configuration (Gradual Rollout)
+### 階段 3：Client 配置（漸進式推出）
 
-#### Stage 1: Development Environment
+#### 第一階段：開發環境
 
 ```bash
 # Start with development/staging
@@ -181,7 +181,7 @@ claude "hello world"
 curl "http://localhost:9090/api/v1/query?query=claude_code_session_count"
 ```
 
-#### Stage 2: Pilot Users (10%)
+#### 第二階段：試點使用者（10%）
 
 ```bash
 # Roll out to pilot group
@@ -193,7 +193,7 @@ curl "http://localhost:9090/api/v1/query?query=claude_code_session_count"
 # - Test Grafana dashboards
 ```
 
-#### Stage 3: Full Rollout
+#### 第三階段：全面推出
 
 ```bash
 # After successful pilot (1-2 weeks)
@@ -209,10 +209,11 @@ curl "http://localhost:9090/api/v1/query?query=claude_code_session_count"
 }
 ```
 
-### Phase 4: Validation
+### 階段 4：驗證
 
 ```bash
 #!/bin/bash
+set -euo pipefail
 # validate-migration.sh
 
 echo "=== Migration Validation ==="
@@ -237,25 +238,25 @@ curl -s http://localhost:3000/api/health | jq -r '.database' && echo " ✓ Healt
 echo "=== Validation Complete ==="
 ```
 
-## Upgrading Claude Code Versions
+## 升級 Claude Code 版本
 
-### Pre-Upgrade Checklist
+### 升級前檢查清單
 
-- [ ] Review release notes for OTEL changes
-- [ ] Backup current configuration
-- [ ] Test upgrade in non-production environment
-- [ ] Plan rollback procedure
-- [ ] Notify users of potential telemetry changes
+- [ ] 審查 release notes 中的 OTEL 變更
+- [ ] 備份目前配置
+- [ ] 在非生產環境測試升級
+- [ ] 規劃 rollback 程序
+- [ ] 通知使用者可能的 telemetry 變更
 
-### Version Compatibility
+### 版本相容性
 
-| Claude Code | OTEL SDK | Collector | Notes |
-|-------------|----------|-----------|-------|
-| 2.0.x | 1.18.x | 0.88+ | Initial OTEL support |
-| 2.1.x | 1.21.x | 0.92+ | Added metrics |
-| 2.2.x | 1.24.x | 0.96+ | Privacy controls |
+| Claude Code | OTEL SDK | Collector | 備註 |
+|-------------|----------|-----------|------|
+| 2.0.x | 1.18.x | 0.88+ | 初始 OTEL 支援 |
+| 2.1.x | 1.21.x | 0.92+ | 新增 metrics |
+| 2.2.x | 1.24.x | 0.96+ | Privacy 控制 |
 
-### Upgrade Procedure
+### 升級程序
 
 ```bash
 # 1. Check current version
@@ -285,7 +286,7 @@ claude --help | grep -i otel
 curl "http://localhost:9090/api/v1/query?query=claude_code_session_count"
 ```
 
-### Handling Breaking Changes
+### 處理重大變更
 
 ```bash
 # Example: Metric name change in v2.2
@@ -307,9 +308,9 @@ sed -i 's/claude_code_token_count/claude_code_tokens_input + claude_code_tokens_
   /var/lib/grafana/dashboards/*.json
 ```
 
-## Upgrading OTEL Infrastructure
+## 升級 OTEL 基礎設施
 
-### OTEL Collector Upgrade
+### OTEL Collector 升級
 
 ```bash
 # 1. Check current version
@@ -344,7 +345,7 @@ docker logs otel-collector | tail -20
 curl http://localhost:13133
 ```
 
-### Prometheus Upgrade
+### Prometheus 升級
 
 ```bash
 # 1. Check version compatibility
@@ -364,7 +365,7 @@ curl http://localhost:9090/-/healthy
 curl "http://localhost:9090/api/v1/query?query=up"
 ```
 
-### Grafana Upgrade
+### Grafana 升級
 
 ```bash
 # 1. Backup dashboards and config
@@ -379,9 +380,9 @@ docker start grafana
 curl http://localhost:3000/api/health
 ```
 
-## Data Migration
+## 資料遷移
 
-### Migrating Prometheus Data
+### 遷移 Prometheus 資料
 
 ```bash
 # Export data using Prometheus remote read
@@ -412,7 +413,7 @@ promtool tsdb dump /old-prometheus/data | \
   promtool tsdb create-blocks /new-prometheus/data
 ```
 
-### Migrating to Different Backend
+### 遷移至不同 Backend
 
 ```yaml
 # Example: Prometheus to Datadog migration
@@ -434,9 +435,9 @@ service:
       exporters: [prometheusremotewrite, datadog]  # Dual write
 ```
 
-## Rollback Procedures
+## Rollback 程序
 
-### Quick Rollback (Disable Telemetry)
+### 快速 Rollback（停用 Telemetry）
 
 ```bash
 # Immediate rollback - disable telemetry
@@ -450,7 +451,7 @@ export CLAUDE_CODE_ENABLE_TELEMETRY=0
 claude "test"  # Should not send telemetry
 ```
 
-### Infrastructure Rollback
+### 基礎設施 Rollback
 
 ```bash
 # Docker-based rollback
@@ -470,7 +471,7 @@ docker exec prometheus tar -xzf /tmp/prometheus-backup.tar.gz -C /
 docker start prometheus grafana
 ```
 
-### Configuration Rollback
+### 配置 Rollback
 
 ```bash
 # Restore user configuration
@@ -479,26 +480,26 @@ cp ~/.bashrc.backup ~/.bashrc
 source ~/.bashrc
 ```
 
-## Compatibility Matrix
+## 相容性矩陣
 
-### Claude Code ↔ OTEL Components
+### Claude Code 與 OTEL 元件
 
-| Claude Code | OTEL Collector | Prometheus | Grafana | Status |
-|-------------|----------------|------------|---------|--------|
-| 2.0.x | 0.88-0.92 | 2.45+ | 9.x+ | Supported |
-| 2.1.x | 0.90-0.96 | 2.47+ | 10.x+ | Supported |
-| 2.2.x | 0.94+ | 2.50+ | 10.2+ | Current |
+| Claude Code | OTEL Collector | Prometheus | Grafana | 狀態 |
+|-------------|----------------|------------|---------|------|
+| 2.0.x | 0.88-0.92 | 2.45+ | 9.x+ | 支援中 |
+| 2.1.x | 0.90-0.96 | 2.47+ | 10.x+ | 支援中 |
+| 2.2.x | 0.94+ | 2.50+ | 10.2+ | 目前版本 |
 
-### Environment Variable Changes
+### 環境變數變更
 
-| Version | Added | Deprecated | Removed |
-|---------|-------|------------|---------|
+| 版本 | 新增 | 已棄用 | 已移除 |
+|------|------|--------|--------|
 | 2.0.0 | `CLAUDE_CODE_ENABLE_TELEMETRY` | - | - |
 | 2.1.0 | `OTEL_LOG_USER_PROMPTS` | - | - |
 | 2.1.1 | `OTEL_LOG_TOOL_CONTENT` | - | - |
-| 2.2.0 | `OTEL_METRICS_SESSION_ID` | `CLAUDE_OTEL_ENABLED` (use `CLAUDE_CODE_ENABLE_TELEMETRY`) | - |
+| 2.2.0 | `OTEL_METRICS_SESSION_ID` | `CLAUDE_OTEL_ENABLED`（請使用 `CLAUDE_CODE_ENABLE_TELEMETRY`） | - |
 
-### Breaking Changes by Version
+### 各版本重大變更
 
 ```yaml
 # v2.1.0 Breaking Changes
@@ -512,15 +513,15 @@ config:
     migration: "Use CLAUDE_CODE_ENABLE_TELEMETRY instead"
 ```
 
-## Migration Support
+## Migration 支援
 
-### Getting Help
+### 取得協助
 
-- Review [Troubleshooting Playbook](./04-troubleshooting.md)
-- Check [Official Documentation](https://docs.anthropic.com/en/docs/claude-code/telemetry)
-- Open GitHub issue for migration-specific problems
+- 參閱[疑難排解手冊](./04-troubleshooting.md)
+- 查看[官方文件](https://docs.anthropic.com/en/docs/claude-code/telemetry)
+- 針對 migration 特定問題開啟 GitHub issue
 
-### Migration Checklist Template
+### Migration 檢查清單範本
 
 ```markdown
 ## Migration Checklist
@@ -557,8 +558,8 @@ config:
 - [ ] Document lessons learned
 ```
 
-## Related Documentation
+## 相關文件
 
-- [Troubleshooting Playbook](./04-troubleshooting.md)
-- [Production Deployment Guide](./02-production-deployment.md)
-- [Security Hardening Guide](./11-security-hardening.md)
+- [疑難排解手冊](./04-troubleshooting.md)
+- [生產環境部署指南](./02-production-deployment.md)
+- [Security Hardening 指南](./11-security-hardening.md)

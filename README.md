@@ -41,7 +41,7 @@ git clone https://github.com/ChiTienHsieh/claude-code-otel-exploration
 cd claude-code-otel-exploration/verify
 
 # 啟動 observability stack
-docker-compose up -d
+docker compose up -d
 
 # 設定 Claude Code 環境變數
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
@@ -52,6 +52,7 @@ export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 claude "hello world"
 
 # 查看結果
+# NOTE: admin/admin is the default credential - CHANGE IN PRODUCTION!
 open http://localhost:3000  # Grafana (admin/admin)
 open http://localhost:16686 # Jaeger
 open http://localhost:9090  # Prometheus

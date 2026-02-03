@@ -1,22 +1,22 @@
-# Production Deployment Guide
+# Production 部署指南
 
-> **Last Updated**: 2026-02-03
+> **最後更新**: 2026-02-03
 
-This guide covers deploying Claude Code OTEL monitoring infrastructure in production environments, including Kubernetes, high availability, and scaling patterns.
+本指南涵蓋在 production 環境中部署 Claude Code OTEL 監控基礎設施，包括 Kubernetes、高可用性和擴展模式。
 
-## Table of Contents
+## 目錄
 
-- [Architecture Overview](#architecture-overview)
-- [Kubernetes Deployment](#kubernetes-deployment)
-- [High Availability Setup](#high-availability-setup)
-- [Scaling Patterns](#scaling-patterns)
-- [Load Balancing](#load-balancing)
-- [Failure Recovery](#failure-recovery)
-- [Resource Planning](#resource-planning)
+- [架構概覽](#架構概覽)
+- [Kubernetes 部署](#kubernetes-部署)
+- [高可用性設置](#高可用性設置)
+- [擴展模式](#擴展模式)
+- [負載平衡](#負載平衡)
+- [故障恢復](#故障恢復)
+- [資源規劃](#資源規劃)
 
-## Architecture Overview
+## 架構概覽
 
-### Production Architecture
+### Production 架構
 
 ```
                                     ┌─────────────────────────────────────────┐
@@ -50,9 +50,9 @@ This guide covers deploying Claude Code OTEL monitoring infrastructure in produc
                                     └─────────────────────────────────────────┘
 ```
 
-## Kubernetes Deployment
+## Kubernetes 部署
 
-### Namespace Setup
+### Namespace 設置
 
 ```yaml
 # namespace.yaml
@@ -65,7 +65,7 @@ metadata:
     istio-injection: disabled
 ```
 
-### OTEL Collector - Gateway Mode
+### OTEL Collector - Gateway 模式
 
 ```yaml
 # otel-collector-gateway.yaml
@@ -309,9 +309,9 @@ spec:
       app: otel-collector-gateway
 ```
 
-## High Availability Setup
+## 高可用性設置
 
-### Prometheus HA with Thanos
+### 使用 Thanos 的 Prometheus HA
 
 ```yaml
 # prometheus-ha.yaml
@@ -506,14 +506,14 @@ spec:
             name: grafana-provisioning
 ```
 
-## Scaling Patterns
+## 擴展模式
 
-### Pattern 1: Agent-Gateway Architecture
+### 模式 1：Agent-Gateway 架構
 
-For large-scale deployments, use a two-tier collector architecture:
+對於大規模部署，使用兩層 collector 架構：
 
 ```yaml
-# OTEL Collector Agent (DaemonSet - one per node)
+# OTEL Collector Agent (DaemonSet - 每個 node 一個)
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -550,7 +550,7 @@ spec:
             name: otel-collector-config
 ```
 
-Agent configuration (lightweight, forwards to gateway):
+Agent 配置（輕量級，轉發到 gateway）：
 
 ```yaml
 # agent-config.yaml
@@ -595,10 +595,10 @@ service:
       exporters: [loadbalancing]
 ```
 
-### Pattern 2: Sharding by Team/Service
+### 模式 2：按團隊/服務分片
 
 ```yaml
-# Shard metrics by team using routing
+# 使用 routing 按團隊分片 metrics
 processors:
   routing:
     from_attribute: resource.team
@@ -612,9 +612,9 @@ processors:
     default_exporters: [prometheusremotewrite/default]
 ```
 
-## Load Balancing
+## 負載平衡
 
-### External Load Balancer (AWS NLB)
+### 外部負載平衡器（AWS NLB）
 
 ```yaml
 # otel-collector-nlb.yaml
@@ -642,21 +642,21 @@ spec:
       protocol: TCP
 ```
 
-### Client-Side Load Balancing with DNS
+### 使用 DNS 的客戶端負載平衡
 
-Configure Claude Code clients to use DNS-based load balancing:
+配置 Claude Code 客戶端使用基於 DNS 的負載平衡：
 
 ```bash
-# Use headless service for DNS round-robin
+# 使用 headless service 進行 DNS round-robin
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector.claude-observability.svc.cluster.local:4317
 ```
 
-## Failure Recovery
+## 故障恢復
 
-### Circuit Breaker Pattern
+### Circuit Breaker 模式
 
 ```yaml
-# otel-collector-config.yaml with retry and circuit breaker
+# otel-collector-config.yaml 包含重試和 circuit breaker
 exporters:
   prometheusremotewrite:
     endpoint: http://prometheus:9090/api/v1/write
@@ -672,7 +672,7 @@ exporters:
       storage: file_storage
 ```
 
-### Persistent Queue Storage
+### 持久化佇列儲存
 
 ```yaml
 extensions:
@@ -690,7 +690,7 @@ exporters:
       storage: file_storage
 ```
 
-### Backup Exporter (使用多 Pipeline 方式)
+### 備援 Exporter（使用多 Pipeline 方式）
 
 ```yaml
 # 設定備援 exporter - 使用雙 pipeline 寫入
@@ -719,58 +719,58 @@ service:
       exporters: [prometheusremotewrite/backup]
 ```
 
-## Resource Planning
+## 資源規劃
 
-### Sizing Guidelines
+### 規模調整指南
 
-| Scale | Claude Code Users | Collector Replicas | Memory per Replica | CPU per Replica |
+| 規模 | Claude Code 使用者數 | Collector Replicas | 每個 Replica 記憶體 | 每個 Replica CPU |
 |-------|-------------------|--------------------|--------------------|-----------------|
-| Small | 1-10 | 2 | 512Mi | 200m |
-| Medium | 10-50 | 3 | 1Gi | 500m |
-| Large | 50-200 | 5 | 2Gi | 1000m |
-| Enterprise | 200+ | 10+ | 4Gi | 2000m |
+| 小型 | 1-10 | 2 | 512Mi | 200m |
+| 中型 | 10-50 | 3 | 1Gi | 500m |
+| 大型 | 50-200 | 5 | 2Gi | 1000m |
+| 企業級 | 200+ | 10+ | 4Gi | 2000m |
 
-### Prometheus Storage Planning
+### Prometheus 儲存規劃
 
 ```
-Storage Required = Ingestion Rate × Retention Period × 2 (for overhead)
+所需儲存 = 攝取速率 × 保留期間 × 2（用於額外開銷）
 
-Example:
+範例：
 - 1000 samples/second
-- 30 days retention
-- Storage = 1000 × 86400 × 30 × 2 bytes ≈ 5.2 GB (with compression)
+- 30 天保留
+- 儲存 = 1000 × 86400 × 30 × 2 bytes ≈ 5.2 GB（壓縮後）
 ```
 
-### Network Bandwidth
+### 網路頻寬
 
 ```
-Bandwidth = (Metrics + Traces + Logs) × Replication Factor
+頻寬 = (Metrics + Traces + Logs) × 複製因子
 
-Example:
+範例：
 - Metrics: 100 KB/s
 - Traces: 500 KB/s
 - Logs: 200 KB/s
-- Replication: 2x
-- Total: 1.6 MB/s
+- 複製: 2x
+- 總計: 1.6 MB/s
 ```
 
 ## Helm Chart
 
-For simplified deployment, use the official OpenTelemetry Helm chart:
+為了簡化部署，使用官方 OpenTelemetry Helm chart：
 
 ```bash
-# Add Helm repository
+# 新增 Helm repository
 helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
 helm repo update
 
-# Install OTEL Collector
+# 安裝 OTEL Collector
 helm install otel-collector open-telemetry/opentelemetry-collector \
   --namespace claude-observability \
   --create-namespace \
   --values otel-collector-values.yaml
 ```
 
-Example `otel-collector-values.yaml`:
+範例 `otel-collector-values.yaml`：
 
 ```yaml
 mode: deployment
@@ -832,8 +832,8 @@ affinity:
           topologyKey: kubernetes.io/hostname
 ```
 
-## Related Documentation
+## 相關文件
 
-- [Security Hardening Guide](./11-security-hardening.md)
-- [Troubleshooting Playbook](./04-troubleshooting.md)
-- [Cost Optimization Guide](./03-cost-optimization.md)
+- [安全加固指南](./11-security-hardening.md)
+- [疑難排解手冊](./04-troubleshooting.md)
+- [成本優化指南](./03-cost-optimization.md)

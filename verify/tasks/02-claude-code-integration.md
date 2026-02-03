@@ -60,7 +60,7 @@ claude "list files in current directory"
 開另一個 terminal：
 
 ```bash
-docker-compose logs -f otel-collector
+docker compose logs -f otel-collector
 ```
 
 預期：看到收到的 traces/metrics/logs 資料。

@@ -39,10 +39,10 @@ cd verify
 cp .env.example .env
 
 # 啟動所有服務
-docker-compose up -d
+docker compose up -d
 
 # 確認服務都起來了
-docker-compose ps
+docker compose ps
 ```
 
 ### 2. 設定 Claude Code 環境變數
@@ -73,6 +73,8 @@ claude "hello, please list files in current directory"
 ```
 
 ### 4. 查看結果
+
+> **Note**: Default Grafana credentials (admin/admin) - **CHANGE IN PRODUCTION!**
 
 | 服務 | URL | 說明 |
 |------|-----|------|
@@ -109,7 +111,7 @@ claude "hello, please list files in current directory"
 
 2. 檢查 Collector logs：
    ```bash
-   docker-compose logs otel-collector
+   docker compose logs otel-collector
    ```
 
 3. 確認 port 有開：
@@ -141,24 +143,24 @@ exporters:
 
 然後重啟：
 ```bash
-docker-compose restart otel-collector
+docker compose restart otel-collector
 ```
 
 ## 清理
 
 ```bash
 # 停止並移除 containers
-docker-compose down
+docker compose down
 
 # 連 volumes 一起刪（清掉所有資料）
-docker-compose down -v
+docker compose down -v
 ```
 
 ## 檔案說明
 
 | 檔案 | 說明 |
 |------|------|
-| `docker-compose.yml` | 定義所有服務 |
+| `docker compose.yml` | 定義所有服務 |
 | `otel-collector-config.yaml` | OTEL Collector 設定 |
 | `prometheus.yml` | Prometheus 抓取設定 |
 | `.env.example` | 環境變數範例 |

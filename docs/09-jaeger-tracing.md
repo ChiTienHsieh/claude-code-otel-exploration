@@ -1,32 +1,32 @@
-# Jaeger & Distributed Tracing Guide
+# Jaeger 與 Distributed Tracing 指南
 
-> **Last Updated**: 2026-02-03
+> **最後更新**：2026 年 2 月 3 日
 
-A comprehensive guide to using Jaeger for distributed tracing with Claude Code OTEL integration.
+本指南完整說明如何使用 Jaeger 進行 distributed tracing，並與 Claude Code OTEL 整合。
 
-## Table of Contents
+## 目錄
 
-- [Introduction to Jaeger](#introduction-to-jaeger)
-- [Setup and Configuration](#setup-and-configuration)
-- [Understanding Traces](#understanding-traces)
-- [Jaeger UI Guide](#jaeger-ui-guide)
-- [Advanced Queries](#advanced-queries)
-- [Performance Analysis](#performance-analysis)
-- [Alerting on Traces](#alerting-on-traces)
-- [Best Practices](#best-practices)
+- [Jaeger 簡介](#jaeger-簡介)
+- [設定與配置](#設定與配置)
+- [理解 Traces](#理解-traces)
+- [Jaeger UI 指南](#jaeger-ui-指南)
+- [進階查詢](#進階查詢)
+- [效能分析](#效能分析)
+- [Traces 告警](#traces-告警)
+- [最佳實踐](#最佳實踐)
 
-## Introduction to Jaeger
+## Jaeger 簡介
 
-### What is Jaeger?
+### 什麼是 Jaeger？
 
-Jaeger is an open-source distributed tracing platform that helps:
+Jaeger 是一個開源的 distributed tracing 平台，可以幫助您：
 
-- Monitor and troubleshoot distributed systems
-- Track request flows across services
-- Identify performance bottlenecks
-- Analyze root causes of errors
+- 監控和除錯分散式系統
+- 追蹤請求在各服務間的流程
+- 識別效能瓶頸
+- 分析錯誤的根本原因
 
-### Jaeger Architecture
+### Jaeger 架構
 
 ```
                                     ┌─────────────────────────────────────┐
@@ -50,9 +50,9 @@ Jaeger is an open-source distributed tracing platform that helps:
                                     └─────────────────────────────────────┘
 ```
 
-## Setup and Configuration
+## 設定與配置
 
-### Docker Compose Setup
+### Docker Compose 設定
 
 ```yaml
 # docker-compose.yaml
@@ -101,7 +101,7 @@ volumes:
   jaeger-data:
 ```
 
-### OTEL Collector Configuration for Jaeger
+### Jaeger 的 OTEL Collector 配置
 
 ```yaml
 # otel-collector-config.yaml
@@ -165,7 +165,7 @@ service:
       exporters: [otlp/jaeger, debug]
 ```
 
-### Claude Code Configuration for Tracing
+### Claude Code Tracing 配置
 
 ```bash
 # Enable telemetry and traces
@@ -185,9 +185,9 @@ export OTEL_TRACES_SAMPLER_ARG=1.0  # 100% for debugging, reduce for production
 export OTEL_PROPAGATORS=tracecontext,baggage
 ```
 
-## Understanding Traces
+## 理解 Traces
 
-### Trace Concepts
+### Trace 概念
 
 ```
 Trace (complete request flow)
@@ -217,24 +217,24 @@ Trace (complete request flow)
 │           └── Tags: command="npm test"
 ```
 
-### Span Attributes Reference
+### Span Attributes 參考
 
-| Attribute | Description | Example |
-|-----------|-------------|---------|
-| `service.name` | Service identifier | `claude-code` |
-| `service.version` | Version | `2.1.1` |
-| `session.id` | Session identifier | `abc123def456` |
-| `user.id` | User identifier | `user@example.com` |
-| `tool.name` | Tool being executed | `Bash`, `Read`, `Write` |
-| `api.model` | AI model used | `claude-sonnet-4-20250514` |
-| `api.tokens.input` | Input token count | `500` |
-| `api.tokens.output` | Output token count | `1200` |
-| `error` | Whether span errored | `true`/`false` |
-| `error.message` | Error description | `Command failed` |
+| Attribute | 說明 | 範例 |
+|-----------|------|------|
+| `service.name` | 服務識別碼 | `claude-code` |
+| `service.version` | 版本 | `2.1.1` |
+| `session.id` | Session 識別碼 | `abc123def456` |
+| `user.id` | 使用者識別碼 | `user@example.com` |
+| `tool.name` | 正在執行的工具 | `Bash`, `Read`, `Write` |
+| `api.model` | 使用的 AI model | `claude-sonnet-4-20250514` |
+| `api.tokens.input` | 輸入 token 數量 | `500` |
+| `api.tokens.output` | 輸出 token 數量 | `1200` |
+| `error` | Span 是否發生錯誤 | `true`/`false` |
+| `error.message` | 錯誤描述 | `Command failed` |
 
-## Jaeger UI Guide
+## Jaeger UI 指南
 
-### Accessing the UI
+### 存取 UI
 
 ```bash
 # Start Jaeger
@@ -244,17 +244,17 @@ docker compose up -d jaeger
 open http://localhost:16686
 ```
 
-### Search Panel
+### 搜尋面板
 
-#### Basic Search
+#### 基本搜尋
 
-1. **Service**: Select `claude-code`
-2. **Operation**: Select specific operation or `all`
-3. **Tags**: Filter by attributes
-4. **Lookback**: Time range (1h, 2h, 1d, custom)
-5. **Min/Max Duration**: Filter by latency
+1. **Service**：選擇 `claude-code`
+2. **Operation**：選擇特定操作或 `all`
+3. **Tags**：按 attributes 過濾
+4. **Lookback**：時間範圍（1h、2h、1d、自訂）
+5. **Min/Max Duration**：按延遲過濾
 
-#### Tag Queries
+#### Tag 查詢
 
 ```
 # Find traces with errors
@@ -273,9 +273,9 @@ api.tokens.input>1000
 error=true service.name=claude-code
 ```
 
-### Trace View
+### Trace 檢視
 
-#### Timeline View
+#### Timeline 檢視
 
 ```
 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] claude_code.session (45s)
@@ -286,22 +286,22 @@ error=true service.name=claude-code
                       [▓]         tool.bash.execute (480ms)
 ```
 
-#### Span Details
+#### Span 詳細資訊
 
-Click on a span to see:
-- **Tags**: Key-value attributes
-- **Process**: Service information
-- **Logs**: Events/annotations within span
-- **Warnings**: Detected issues
+點擊 span 可以查看：
+- **Tags**：鍵值對 attributes
+- **Process**：服務資訊
+- **Logs**：Span 內的事件/註解
+- **Warnings**：偵測到的問題
 
-### Compare Traces
+### 比較 Traces
 
-1. Select multiple traces in search results
-2. Click "Compare" button
-3. View side-by-side timeline comparison
-4. Identify differences in timing and structure
+1. 在搜尋結果中選擇多個 traces
+2. 點擊「Compare」按鈕
+3. 並排查看 timeline 比較
+4. 識別時間和結構的差異
 
-## Advanced Queries
+## 進階查詢
 
 ### Jaeger Query API
 
@@ -322,7 +322,7 @@ curl "http://localhost:16686/api/traces/{traceID}"
 curl "http://localhost:16686/api/traces?service=claude-code&tags=%7B%22error%22%3A%22true%22%7D"
 ```
 
-### Python Query Script
+### Python 查詢腳本
 
 ```python
 #!/usr/bin/env python3
@@ -389,9 +389,9 @@ print(f"Found {stats['total']} traces, {stats['errors']} with errors")
 print(f"Avg duration: {stats['avg_duration']:.2f}ms")
 ```
 
-## Performance Analysis
+## 效能分析
 
-### Identifying Bottlenecks
+### 識別瓶頸
 
 ```python
 def find_bottlenecks(traces, threshold_ms=1000):
@@ -413,7 +413,7 @@ def find_bottlenecks(traces, threshold_ms=1000):
     return sorted(bottlenecks, key=lambda x: x["duration_ms"], reverse=True)
 ```
 
-### Latency Analysis
+### 延遲分析
 
 ```python
 import numpy as np
@@ -439,18 +439,18 @@ def latency_percentiles(traces, operation=None):
     }
 ```
 
-### Service Dependency Graph
+### Service 相依性圖
 
 ```bash
 # Get dependencies
 curl "http://localhost:16686/api/dependencies?endTs=$(date +%s)000&lookback=86400000"
 ```
 
-## Alerting on Traces
+## Traces 告警
 
-### Prometheus Metrics from Jaeger
+### 從 Jaeger 取得 Prometheus Metrics
 
-Jaeger exposes metrics that can be scraped by Prometheus:
+Jaeger 會暴露可被 Prometheus 抓取的 metrics：
 
 ```yaml
 # prometheus.yml
@@ -460,7 +460,7 @@ scrape_configs:
       - targets: ['jaeger:14269']
 ```
 
-### Alert Rules
+### 告警規則
 
 ```yaml
 # prometheus-alerts.yaml
@@ -498,7 +498,7 @@ groups:
           summary: "Jaeger collector is down"
 ```
 
-### Grafana Alerts on Trace Data
+### Grafana 基於 Trace 資料的告警
 
 ```json
 {
@@ -522,9 +522,9 @@ groups:
 }
 ```
 
-## Best Practices
+## 最佳實踐
 
-### 1. Meaningful Span Names
+### 1. 有意義的 Span 名稱
 
 ```
 Good: claude_code.tool.bash.execute
@@ -534,15 +534,15 @@ Good: anthropic.api.messages.create
 Bad:  api_call
 ```
 
-### 2. Essential Tags
+### 2. 必要的 Tags
 
-Always include:
+務必包含：
 - `service.name`
 - `service.version`
-- `error` (if applicable)
-- `error.message` (if error)
+- `error`（如適用）
+- `error.message`（如有錯誤）
 
-### 3. Sampling Strategy
+### 3. Sampling 策略
 
 ```yaml
 # Development: Sample everything
@@ -562,7 +562,7 @@ tail_sampling:
       probabilistic: {sampling_percentage: 1}
 ```
 
-### 4. Trace Context Propagation
+### 4. Trace Context 傳播
 
 ```bash
 # Ensure context flows across services
@@ -572,14 +572,14 @@ export OTEL_PROPAGATORS=tracecontext,baggage,b3
 export TRACEPARENT="00-{trace_id}-{span_id}-01"
 ```
 
-### 5. Storage Considerations
+### 5. Storage 考量
 
-| Backend | Use Case | Retention |
-|---------|----------|-----------|
-| Memory | Development | Session only |
-| Badger | Single node | Days |
-| Elasticsearch | Production | Weeks |
-| Cassandra | Large scale | Months |
+| Backend | 使用場景 | 保留期限 |
+|---------|----------|----------|
+| Memory | 開發環境 | 僅限 Session |
+| Badger | 單節點 | 數天 |
+| Elasticsearch | 生產環境 | 數週 |
+| Cassandra | 大規模 | 數月 |
 
 ```yaml
 # Elasticsearch backend
@@ -589,7 +589,7 @@ environment:
   - ES_INDEX_PREFIX=jaeger
 ```
 
-### 6. Trace Retention
+### 6. Trace 保留
 
 ```yaml
 # Automatic cleanup (Elasticsearch)
@@ -597,9 +597,9 @@ environment:
   - ES_MAX_SPAN_AGE=168h  # 7 days
 ```
 
-## Troubleshooting
+## 疑難排解
 
-### No Traces Appearing
+### 沒有出現 Traces
 
 ```bash
 # Check Jaeger health
@@ -613,20 +613,20 @@ export OTEL_TRACES_EXPORTER=console,otlp
 claude "test"  # Should see trace output
 ```
 
-### Incomplete Traces
+### 不完整的 Traces
 
-- Check all services have same `OTEL_PROPAGATORS`
-- Verify trace context headers are forwarded
-- Check sampling configuration isn't dropping spans
+- 檢查所有服務是否有相同的 `OTEL_PROPAGATORS`
+- 驗證 trace context headers 是否有轉發
+- 檢查 sampling 配置是否丟棄了 spans
 
-### High Latency in UI
+### UI 高延遲
 
-- Add indexes to storage backend
-- Increase Jaeger query resources
-- Reduce trace retention period
+- 為 storage backend 新增索引
+- 增加 Jaeger query 資源
+- 減少 trace 保留期限
 
-## Related Documentation
+## 相關文件
 
-- [Traces Deep Dive](./01-traces-deep-dive.md)
-- [Production Deployment Guide](./02-production-deployment.md)
-- [Troubleshooting Playbook](./04-troubleshooting.md)
+- [Traces 深入探討](./01-traces-deep-dive.md)
+- [生產環境部署指南](./02-production-deployment.md)
+- [疑難排解手冊](./04-troubleshooting.md)
