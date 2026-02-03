@@ -609,7 +609,7 @@ export OTEL_EXPORTER_OTLP_HEADERS="signoz-access-token=<your-token>"
 ### 使用 SigNoz 的 Docker Compose
 
 ```yaml
-version: '3.8'
+# 注意：`version` 欄位在 Docker Compose v2+ 已棄用，不再需要
 services:
   signoz:
     image: signoz/signoz:latest

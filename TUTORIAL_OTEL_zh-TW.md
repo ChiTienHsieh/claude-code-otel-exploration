@@ -57,7 +57,7 @@ export OTEL_METRICS_EXPORTER=console,otlp
 
 > ⚠️ **Traces 支援度說明**
 >
-> Claude Code [官方文件](https://code.claude.com/docs/en/monitoring-usage)
+> Claude Code [官方文件](https://docs.anthropic.com/en/docs/claude-code/telemetry)
 > 目前只明確提到 **Metrics** 和 **Logs** exporter。
 >
 > `OTEL_TRACES_EXPORTER` 在 source code 中存在，但：
@@ -131,7 +131,7 @@ Claude Code 對隱私超小心的 (´・ω・`)
 | Token 用量 | ✅ 記錄 | 官方文件 + 實測 |
 
 > 📋 **來源說明**
-> - **官方文件**: [Anthropic Docs - Monitoring](https://code.claude.com/docs/en/monitoring-usage)
+> - **官方文件**: [Anthropic Docs - Monitoring](https://docs.anthropic.com/en/docs/claude-code/telemetry)
 > - **實測**: 使用 `console` exporter 觀察實際輸出
 > - **Source code 分析**: 從 Claude Code v2.1.1 cli.js 分析得出
 
@@ -156,7 +156,7 @@ export OTEL_METRICS_INCLUDE_VERSION=false       # 包含版本資訊（預設關
 >
 > | 變數 | 來源 | 備註 |
 > |------|------|------|
-> | `OTEL_LOG_USER_PROMPTS` | 官方文件 | [Anthropic Docs](https://code.claude.com/docs/en/monitoring-usage) |
+> | `OTEL_LOG_USER_PROMPTS` | 官方文件 | [Anthropic Docs](https://docs.anthropic.com/en/docs/claude-code/telemetry) |
 > | `OTEL_LOG_TOOL_CONTENT` | Source code 分析 | 從 cli.js 發現，待官方文件確認 |
 > | `OTEL_METRICS_INCLUDE_*` | Source code 分析 | 從 cli.js 發現，待官方文件確認 |
 >
@@ -212,7 +212,7 @@ export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer $(get-token.sh)"
 export CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS=30000  # 30 秒內不重複呼叫
 ```
 
-> 📋 **來源：** [官方文件](https://code.claude.com/docs/en/monitoring-usage)
+> 📋 **來源：** [官方文件](https://docs.anthropic.com/en/docs/claude-code/telemetry)
 
 ### 4.1 Batch 處理設定
 
@@ -298,9 +298,7 @@ docker run -d --name otel-collector \
 建立 `docker-compose.yml`：
 
 ```yaml
-# 注意：`version` 欄位在 Docker Compose v2+ 已棄用，可省略
-# 保留此行是為了相容舊版 docker-compose
-version: '3.8'
+# 注意：`version` 欄位在 Docker Compose v2+ 已棄用，不再需要
 services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
@@ -373,8 +371,7 @@ docker compose up -d
 如果你想要完整的視覺化體驗，可以用這個擴充版：
 
 ```yaml
-# 注意：`version` 欄位在 Docker Compose v2+ 已棄用，可省略
-version: '3.8'
+# 注意：`version` 欄位在 Docker Compose v2+ 已棄用，不再需要
 services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
@@ -511,7 +508,7 @@ claude
 > 以下 Metrics 和 Events 名稱來自：
 > 1. **Source code 分析** - Claude Code v2.1.1 cli.js
 > 2. **實測驗證** - 使用 `console` exporter 觀察輸出
-> 3. **官方文件** - [Anthropic Docs](https://code.claude.com/docs/en/monitoring-usage)
+> 3. **官方文件** - [Anthropic Docs](https://docs.anthropic.com/en/docs/claude-code/telemetry)
 >
 > 名稱可能隨版本更新而變更，以實際輸出為準。
 
@@ -696,7 +693,7 @@ Claude Code 的 OTEL 支援超完整的！( •̀ω•́ )✧
 
 ## 參考資源
 
-- [Claude Code 官方文件 - Monitoring](https://code.claude.com/docs/en/monitoring-usage)
+- [Claude Code 官方文件 - Monitoring](https://docs.anthropic.com/en/docs/claude-code/telemetry)
 - [OpenTelemetry 官方文件](https://opentelemetry.io/docs/)
 - [SigNoz - Claude Code Monitoring Guide](https://signoz.io/docs/claude-code-monitoring/)
 
