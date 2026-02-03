@@ -28,7 +28,26 @@ This repository contains:
 |------|-------------|----------|
 | [TUTORIAL_OTEL_zh-TW.md](./TUTORIAL_OTEL_zh-TW.md) | Complete OTEL configuration tutorial | Chinese (zh-TW) |
 | [OPENCODE_OTEL_COMPARISON.md](./OPENCODE_OTEL_COMPARISON.md) | Claude Code vs OpenCode comparison | Chinese (zh-TW) |
+| [docs/](./docs/) | Advanced documentation (English) | English |
 | [verify/](./verify/) | Verifiable Docker test environment | - |
+
+## Advanced Documentation
+
+The [docs/](./docs/) directory contains comprehensive guides for advanced topics:
+
+| Document | Description |
+|----------|-------------|
+| [Traces Deep Dive](./docs/01-traces-deep-dive.md) | Understanding traces support and configuration |
+| [Production Deployment](./docs/02-production-deployment.md) | Kubernetes, HA, scaling patterns |
+| [Cost Optimization](./docs/03-cost-optimization.md) | Using metrics to analyze and reduce costs |
+| [Troubleshooting Playbook](./docs/04-troubleshooting.md) | Common issues and diagnostic procedures |
+| [Backend Integrations](./docs/05-backend-integrations.md) | Datadog, AWS, GCP, New Relic, and more |
+| [Grafana Dashboards](./docs/06-grafana-dashboards.md) | Creating and customizing dashboards |
+| [CI/CD Integration](./docs/07-cicd-integration.md) | GitHub Actions, GitLab CI, Jenkins patterns |
+| [Data Export & Analysis](./docs/08-data-export-analysis.md) | PromQL queries and data analysis |
+| [Jaeger Tracing](./docs/09-jaeger-tracing.md) | Distributed tracing with Jaeger |
+| [Migration & Upgrade](./docs/10-migration-upgrade.md) | Migration paths and upgrade procedures |
+| [Security Hardening](./docs/11-security-hardening.md) | TLS, authentication, data privacy |
 
 ## Quick Start: Verification Environment
 
