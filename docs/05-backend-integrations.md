@@ -1,12 +1,12 @@
-# Alternative Backend Integrations
+# 替代 Backend 整合
 
-> **Last Updated**: 2026-02-03
+> **最後更新**: 2026-02-03
 
-This guide provides detailed integration instructions for connecting Claude Code OTEL telemetry to various observability backends.
+本指南提供將 Claude Code OTEL telemetry 連接到各種可觀測性 backend 的詳細整合說明。
 
-## Table of Contents
+## 目錄
 
-- [Overview](#overview)
+- [概覽](#概覽)
 - [Datadog](#datadog)
 - [Grafana Cloud](#grafana-cloud)
 - [AWS CloudWatch](#aws-cloudwatch)
@@ -16,41 +16,41 @@ This guide provides detailed integration instructions for connecting Claude Code
 - [Splunk](#splunk)
 - [Elastic APM](#elastic-apm)
 - [SigNoz](#signoz)
-- [Comparison Matrix](#comparison-matrix)
+- [比較表](#比較表)
 
-## Overview
+## 概覽
 
-Claude Code exports telemetry via OTLP (OpenTelemetry Protocol). Most modern observability platforms support OTLP natively or through an OTEL Collector.
+Claude Code 透過 OTLP（OpenTelemetry Protocol）匯出 telemetry。大多數現代可觀測性平台原生支援 OTLP 或透過 OTEL Collector 支援。
 
-### Integration Patterns
+### 整合模式
 
 ```
-Pattern 1: Direct OTLP
-Claude Code → Backend (native OTLP support)
+模式 1：直接 OTLP
+Claude Code → Backend（原生 OTLP 支援）
 
-Pattern 2: Via Collector
-Claude Code → OTEL Collector → Backend (any protocol)
+模式 2：透過 Collector
+Claude Code → OTEL Collector → Backend（任何 protocol）
 
-Pattern 3: Vendor Agent
+模式 3：供應商 Agent
 Claude Code → OTEL Collector → Vendor Agent → Backend
 ```
 
 ## Datadog
 
-### Direct OTLP Integration
+### 直接 OTLP 整合
 
 ```bash
-# Environment variables
+# 環境變數
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
 export OTEL_EXPORTER_OTLP_ENDPOINT=https://otel.datadoghq.com:4317
 export OTEL_EXPORTER_OTLP_HEADERS="DD-API-KEY=<your-api-key>"
 export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 
-# Resource attributes for Datadog tagging
+# 用於 Datadog tagging 的 resource attributes
 export OTEL_RESOURCE_ATTRIBUTES="service.name=claude-code,env=production,team=engineering"
 ```
 
-### Via OTEL Collector
+### 透過 OTEL Collector
 
 ```yaml
 # otel-collector-config.yaml
@@ -64,7 +64,7 @@ processors:
   batch:
     timeout: 10s
 
-  # Transform to Datadog format
+  # 轉換為 Datadog 格式
   transform:
     metric_statements:
       - context: datapoint
@@ -75,7 +75,7 @@ exporters:
   datadog:
     api:
       key: ${DD_API_KEY}
-      site: datadoghq.com  # or datadoghq.eu, us3.datadoghq.com, etc.
+      site: datadoghq.com  # 或 datadoghq.eu、us3.datadoghq.com 等
     metrics:
       histograms:
         mode: distributions
@@ -136,17 +136,17 @@ service:
 
 ## Grafana Cloud
 
-### Direct OTLP to Grafana Cloud
+### 直接 OTLP 到 Grafana Cloud
 
 ```bash
-# Get credentials from Grafana Cloud Portal
+# 從 Grafana Cloud Portal 取得憑證
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
 export OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp-gateway-prod-us-central-0.grafana.net/otlp
 export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic <base64-encoded-instance-id:token>"
 export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 ```
 
-### Via OTEL Collector
+### 透過 OTEL Collector
 
 ```yaml
 # otel-collector-config.yaml
@@ -190,7 +190,7 @@ service:
 
 ## AWS CloudWatch
 
-### Via OTEL Collector with AWS Exporter
+### 透過 OTEL Collector 與 AWS Exporter
 
 ```yaml
 # otel-collector-config.yaml
@@ -243,7 +243,7 @@ service:
       exporters: [awscloudwatchlogs]
 ```
 
-### IAM Policy Required
+### 所需的 IAM Policy
 
 ```json
 {
@@ -318,7 +318,7 @@ service:
 
 ## Google Cloud Operations
 
-### Via OTEL Collector
+### 透過 OTEL Collector
 
 ```yaml
 # otel-collector-config.yaml
@@ -355,14 +355,14 @@ service:
       exporters: [googlecloud]
 ```
 
-### GCP Service Account Setup
+### GCP Service Account 設置
 
 ```bash
-# Create service account
+# 建立 service account
 gcloud iam service-accounts create otel-collector \
     --display-name="OTEL Collector Service Account"
 
-# Grant permissions
+# 授予權限
 gcloud projects add-iam-policy-binding your-project-id \
     --member="serviceAccount:otel-collector@your-project-id.iam.gserviceaccount.com" \
     --role="roles/monitoring.metricWriter"
@@ -375,20 +375,20 @@ gcloud projects add-iam-policy-binding your-project-id \
     --member="serviceAccount:otel-collector@your-project-id.iam.gserviceaccount.com" \
     --role="roles/logging.logWriter"
 
-# Create key
+# 建立金鑰
 gcloud iam service-accounts keys create key.json \
     --iam-account=otel-collector@your-project-id.iam.gserviceaccount.com
 
-# Set environment variable
+# 設定環境變數
 export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json
 ```
 
 ## New Relic
 
-### Direct OTLP Integration
+### 直接 OTLP 整合
 
 ```bash
-# Environment variables
+# 環境變數
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
 export OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.nr-data.net:4317
 export OTEL_EXPORTER_OTLP_HEADERS="api-key=<your-license-key>"
@@ -398,7 +398,7 @@ export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 export OTEL_RESOURCE_ATTRIBUTES="service.name=claude-code"
 ```
 
-### Via OTEL Collector
+### 透過 OTEL Collector
 
 ```yaml
 # otel-collector-config.yaml
@@ -430,22 +430,22 @@ service:
       exporters: [otlp/newrelic]
 ```
 
-### New Relic NRQL Queries
+### New Relic NRQL 查詢
 
 ```sql
--- Token usage over time
+-- 隨時間的 token 使用量
 SELECT sum(claude_code.tokens.input), sum(claude_code.tokens.output)
 FROM Metric
 WHERE service.name = 'claude-code'
 TIMESERIES AUTO
 
--- Cost by team
+-- 按團隊的成本
 SELECT sum(claude_code.cost.total)
 FROM Metric
 FACET team
 SINCE 1 week ago
 
--- Session count by environment
+-- 按環境的 session 數量
 SELECT count(*)
 FROM Metric
 WHERE metricName = 'claude_code.session.count'
@@ -454,20 +454,20 @@ FACET environment
 
 ## Honeycomb
 
-### Direct OTLP Integration
+### 直接 OTLP 整合
 
 ```bash
-# Environment variables
+# 環境變數
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
 export OTEL_EXPORTER_OTLP_ENDPOINT=https://api.honeycomb.io:443
 export OTEL_EXPORTER_OTLP_HEADERS="x-honeycomb-team=<your-api-key>"
 export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 
-# Set dataset
+# 設定 dataset
 export OTEL_RESOURCE_ATTRIBUTES="service.name=claude-code"
 ```
 
-### Via OTEL Collector
+### 透過 OTEL Collector
 
 ```yaml
 # otel-collector-config.yaml
@@ -540,7 +540,7 @@ service:
 
 ## Elastic APM
 
-### Via OTEL Collector
+### 透過 OTEL Collector
 
 ```yaml
 # otel-collector-config.yaml
@@ -558,7 +558,7 @@ exporters:
     traces_index: traces-claude-code
     logs_index: logs-claude-code
 
-  # For metrics, use Prometheus remote write to Elasticsearch
+  # 對於 metrics，使用 Prometheus remote write 到 Elasticsearch
   prometheusremotewrite:
     endpoint: https://elasticsearch:9200/_prometheus/api/v1/write
     auth:
@@ -591,22 +591,22 @@ service:
 
 ## SigNoz
 
-SigNoz is an open-source alternative that natively supports OTLP.
+SigNoz 是一個原生支援 OTLP 的開源替代方案。
 
-### Direct OTLP Integration
+### 直接 OTLP 整合
 
 ```bash
-# Environment variables (self-hosted SigNoz)
+# 環境變數（自託管 SigNoz）
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://signoz-otel-collector:4317
 export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 
-# For SigNoz Cloud
+# 對於 SigNoz Cloud
 export OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.signoz.cloud:443
 export OTEL_EXPORTER_OTLP_HEADERS="signoz-access-token=<your-token>"
 ```
 
-### Docker Compose with SigNoz
+### 使用 SigNoz 的 Docker Compose
 
 ```yaml
 version: '3.8'
@@ -624,34 +624,34 @@ volumes:
   signoz-data:
 ```
 
-## Comparison Matrix
+## 比較表
 
-| Backend | OTLP Native | Metrics | Traces | Logs | Cost | Ease |
+| Backend | 原生 OTLP | Metrics | Traces | Logs | 成本 | 易用性 |
 |---------|-------------|---------|--------|------|------|------|
-| Datadog | Yes | Full | Full | Full | $$$ | Easy |
-| Grafana Cloud | Yes | Full | Full | Full | $$ | Easy |
-| AWS CloudWatch | Collector | Full | Via X-Ray | Full | $$ | Medium |
-| GCP Operations | Collector | Full | Full | Full | $$ | Medium |
-| New Relic | Yes | Full | Full | Full | $$$ | Easy |
-| Honeycomb | Yes | Limited | Full | Full | $$ | Easy |
-| Splunk | Collector | Full | Full | Full | $$$ | Medium |
-| Elastic | Collector | Full | Full | Full | $-$$$ | Hard |
-| SigNoz | Yes | Full | Full | Full | $ (OSS) | Easy |
+| Datadog | 是 | 完整 | 完整 | 完整 | $$$ | 簡單 |
+| Grafana Cloud | 是 | 完整 | 完整 | 完整 | $$ | 簡單 |
+| AWS CloudWatch | Collector | 完整 | 透過 X-Ray | 完整 | $$ | 中等 |
+| GCP Operations | Collector | 完整 | 完整 | 完整 | $$ | 中等 |
+| New Relic | 是 | 完整 | 完整 | 完整 | $$$ | 簡單 |
+| Honeycomb | 是 | 有限 | 完整 | 完整 | $$ | 簡單 |
+| Splunk | Collector | 完整 | 完整 | 完整 | $$$ | 中等 |
+| Elastic | Collector | 完整 | 完整 | 完整 | $-$$$ | 困難 |
+| SigNoz | 是 | 完整 | 完整 | 完整 | $（開源） | 簡單 |
 
-### Legend
-- **Cost**: $ = Low, $$ = Medium, $$$ = High
-- **Ease**: How easy to set up for Claude Code specifically
+### 圖例說明
+- **成本**：$ = 低、$$ = 中、$$$ = 高
+- **易用性**：針對 Claude Code 設置的難易程度
 
-## Best Practices
+## 最佳實踐
 
-1. **Start with Collector**: Always use OTEL Collector for production
-2. **Use Native OTLP**: Prefer backends with native OTLP support
-3. **Set Resource Attributes**: Always set `service.name` and `team`
-4. **Configure Retry**: Enable retry on failure for reliability
-5. **Monitor the Pipeline**: Export collector metrics for observability
+1. **從 Collector 開始**：在 production 環境中始終使用 OTEL Collector
+2. **使用原生 OTLP**：優先選擇具有原生 OTLP 支援的 backend
+3. **設定 Resource Attributes**：始終設定 `service.name` 和 `team`
+4. **配置重試**：啟用失敗重試以確保可靠性
+5. **監控 Pipeline**：匯出 collector metrics 以實現可觀測性
 
-## Related Documentation
+## 相關文件
 
-- [Production Deployment Guide](./02-production-deployment.md)
-- [Troubleshooting Playbook](./04-troubleshooting.md)
-- [Security Hardening Guide](./11-security-hardening.md)
+- [Production 部署指南](./02-production-deployment.md)
+- [疑難排解手冊](./04-troubleshooting.md)
+- [安全加固指南](./11-security-hardening.md)

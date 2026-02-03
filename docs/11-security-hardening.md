@@ -1,24 +1,24 @@
-# Security Hardening Guide
+# Security Hardening 指南
 
-> **Last Updated**: 2026-02-03
+> **最後更新**：2026 年 2 月 3 日
 
-A comprehensive guide to securing Claude Code OTEL telemetry infrastructure in production environments.
+本指南完整說明如何在生產環境中保護 Claude Code OTEL telemetry 基礎設施的安全。
 
-## Table of Contents
+## 目錄
 
-- [Security Overview](#security-overview)
-- [Transport Security (TLS/mTLS)](#transport-security-tlsmtls)
-- [Authentication & Authorization](#authentication--authorization)
-- [Data Privacy](#data-privacy)
-- [Network Security](#network-security)
-- [Secret Management](#secret-management)
-- [Audit Logging](#audit-logging)
-- [Compliance Considerations](#compliance-considerations)
-- [Security Checklist](#security-checklist)
+- [Security 概覽](#security-概覽)
+- [傳輸安全（TLS/mTLS）](#傳輸安全tlsmtls)
+- [Authentication 與 Authorization](#authentication-與-authorization)
+- [資料隱私](#資料隱私)
+- [網路安全](#網路安全)
+- [Secret 管理](#secret-管理)
+- [稽核日誌](#稽核日誌)
+- [Compliance 考量](#compliance-考量)
+- [Security 檢查清單](#security-檢查清單)
 
-## Security Overview
+## Security 概覽
 
-### Threat Model
+### 威脅模型
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -42,17 +42,17 @@ A comprehensive guide to securing Claude Code OTEL telemetry infrastructure in p
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Security Layers
+### Security 層級
 
-1. **Transport Layer**: TLS encryption, mTLS authentication
-2. **Application Layer**: API authentication, authorization
-3. **Data Layer**: Encryption at rest, data masking
-4. **Network Layer**: Firewalls, network segmentation
-5. **Operational Layer**: Audit logging, monitoring
+1. **傳輸層**：TLS 加密、mTLS authentication
+2. **應用層**：API authentication、authorization
+3. **資料層**：靜態加密、資料遮罩
+4. **網路層**：防火牆、網路隔離
+5. **操作層**：稽核日誌、監控
 
-## Transport Security (TLS/mTLS)
+## 傳輸安全（TLS/mTLS）
 
-### TLS Configuration for Claude Code
+### Claude Code 的 TLS 配置
 
 ```bash
 # Basic TLS
@@ -63,7 +63,7 @@ export OTEL_EXPORTER_OTLP_CERTIFICATE=/etc/ssl/certs/ca-certificates.crt
 export OTEL_EXPORTER_OTLP_CERTIFICATE=/path/to/company-ca.crt
 ```
 
-### mTLS (Mutual TLS) Configuration
+### mTLS（Mutual TLS）配置
 
 ```bash
 # mTLS with client certificates
@@ -73,7 +73,7 @@ export OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE=/path/to/client.crt
 export OTEL_EXPORTER_OTLP_CLIENT_KEY=/path/to/client.key
 ```
 
-### OTEL Collector TLS Configuration
+### OTEL Collector TLS 配置
 
 ```yaml
 # otel-collector-config.yaml
@@ -104,10 +104,11 @@ exporters:
       ca_file: /etc/otel/certs/ca.crt
 ```
 
-### Certificate Generation
+### 憑證產生
 
 ```bash
 #!/bin/bash
+set -euo pipefail
 # generate-certs.sh - Generate certificates for mTLS
 
 # Set variables
@@ -171,7 +172,7 @@ chmod 644 *.crt
 echo "Certificates generated in $(pwd)"
 ```
 
-## Authentication & Authorization
+## Authentication 與 Authorization
 
 ### API Key Authentication
 
@@ -180,7 +181,7 @@ echo "Certificates generated in $(pwd)"
 export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer ${OTEL_API_KEY}"
 ```
 
-### OTEL Collector with Auth Extension
+### OTEL Collector 搭配 Auth Extension
 
 ```yaml
 # otel-collector-config.yaml
@@ -213,10 +214,11 @@ exporters:
       authenticator: basicauth
 ```
 
-### Dynamic Token Refresh
+### 動態 Token 刷新
 
 ```bash
 #!/bin/bash
+set -euo pipefail
 # token-refresh.sh - Dynamic bearer token refresh
 
 # Path for token file
@@ -243,13 +245,13 @@ while true; do
 done
 ```
 
-Claude Code configuration for dynamic tokens:
+Claude Code 動態 token 配置：
 
 ```bash
 export OTEL_EXPORTER_OTLP_HEADERS_FILE=/tmp/otel-headers
 ```
 
-### RBAC for Observability Stack
+### Observability Stack 的 RBAC
 
 ```yaml
 # Kubernetes RBAC for OTEL Collector
@@ -276,11 +278,11 @@ subjects:
     namespace: observability
 ```
 
-## Data Privacy
+## 資料隱私
 
-### Default Privacy Controls
+### 預設隱私控制
 
-Claude Code has built-in privacy protection:
+Claude Code 內建隱私保護：
 
 ```bash
 # These are NEVER logged by default:
@@ -294,7 +296,7 @@ export OTEL_LOG_USER_PROMPTS=false    # Default: false
 export OTEL_LOG_TOOL_CONTENT=false    # Default: false
 ```
 
-### Data Masking in Collector
+### Collector 中的資料遮罩
 
 ```yaml
 # otel-collector-config.yaml
@@ -335,7 +337,7 @@ processors:
           - ".*password.*"
 ```
 
-### Attribute Filtering
+### Attribute 過濾
 
 ```yaml
 # Remove sensitive attributes before export
@@ -358,9 +360,9 @@ processors:
         max_length: 100
 ```
 
-## Network Security
+## 網路安全
 
-### Firewall Rules
+### 防火牆規則
 
 ```bash
 # iptables rules for OTEL infrastructure
@@ -432,7 +434,7 @@ spec:
           port: 53
 ```
 
-### Service Mesh Integration (Istio)
+### Service Mesh 整合（Istio）
 
 ```yaml
 # istio-peer-authentication.yaml
@@ -466,7 +468,7 @@ spec:
             ports: ["4317", "4318"]
 ```
 
-## Secret Management
+## Secret 管理
 
 ### Kubernetes Secrets
 
@@ -500,7 +502,7 @@ spec:
                   key: auth-token
 ```
 
-### HashiCorp Vault Integration
+### HashiCorp Vault 整合
 
 ```yaml
 # vault-agent-config.yaml
@@ -577,9 +579,9 @@ spec:
         key: /prod/otel/auth-token
 ```
 
-## Audit Logging
+## 稽核日誌
 
-### OTEL Collector Audit Logging
+### OTEL Collector 稽核日誌
 
 ```yaml
 # otel-collector-config.yaml
@@ -604,7 +606,7 @@ processors:
       - log.body  # Don't log actual content
 ```
 
-### Prometheus Audit Logging
+### Prometheus 稽核日誌
 
 ```yaml
 # prometheus.yml
@@ -617,7 +619,7 @@ global:
 # --log.level=info
 ```
 
-### Grafana Audit Logging
+### Grafana 稽核日誌
 
 ```ini
 # grafana.ini
@@ -637,7 +639,7 @@ log_dashboard_views = true
 log_datasource_requests = true
 ```
 
-### Centralized Audit Log Collection
+### 集中式稽核日誌收集
 
 ```yaml
 # fluent-bit config for audit logs
@@ -664,7 +666,7 @@ log_datasource_requests = true
     Index audit-logs
 ```
 
-## Compliance Considerations
+## Compliance 考量
 
 ### GDPR Compliance
 
@@ -714,7 +716,7 @@ receivers:
 # - Vulnerability scanning weekly
 ```
 
-### HIPAA Considerations
+### HIPAA 考量
 
 ```yaml
 # If processing healthcare data
@@ -733,45 +735,45 @@ processors:
           - set(attributes["patient.id"], SHA256(attributes["patient.id"]))
 ```
 
-## Security Checklist
+## Security 檢查清單
 
-### Pre-Deployment
+### 部署前
 
-- [ ] TLS certificates generated and distributed
-- [ ] mTLS configured for all components
-- [ ] Authentication mechanism configured
-- [ ] Network policies defined
-- [ ] Secrets stored securely (Vault/Secrets Manager)
-- [ ] Data privacy controls configured
+- [ ] TLS 憑證已產生並分發
+- [ ] 所有元件已配置 mTLS
+- [ ] Authentication 機制已配置
+- [ ] Network policies 已定義
+- [ ] Secrets 安全儲存（Vault/Secrets Manager）
+- [ ] 資料隱私控制已配置
 
-### Deployment
+### 部署中
 
-- [ ] All endpoints using HTTPS
-- [ ] Client certificates verified
-- [ ] Firewalls configured
-- [ ] Network segmentation in place
-- [ ] Audit logging enabled
-- [ ] Monitoring for security events
+- [ ] 所有 endpoints 使用 HTTPS
+- [ ] Client certificates 已驗證
+- [ ] 防火牆已配置
+- [ ] 網路隔離已就位
+- [ ] 稽核日誌已啟用
+- [ ] Security 事件監控中
 
-### Operations
+### 營運中
 
-- [ ] Certificate rotation scheduled (90 days)
-- [ ] Access reviews scheduled (quarterly)
-- [ ] Vulnerability scanning enabled
-- [ ] Incident response plan documented
-- [ ] Backup and recovery tested
-- [ ] Security training completed
+- [ ] 憑證輪換已排程（90 天）
+- [ ] 存取權審查已排程（每季）
+- [ ] 弱點掃描已啟用
+- [ ] Incident response 計畫已記錄
+- [ ] 備份與復原已測試
+- [ ] Security 訓練已完成
 
-### Regular Reviews
+### 定期審查
 
-- [ ] Weekly: Vulnerability scan results
-- [ ] Monthly: Access log review
-- [ ] Quarterly: Full security audit
-- [ ] Annually: Penetration testing
+- [ ] 每週：弱點掃描結果
+- [ ] 每月：存取日誌審查
+- [ ] 每季：完整 security 稽核
+- [ ] 每年：滲透測試
 
-## Security Monitoring
+## Security 監控
 
-### Security Alerts
+### Security 告警
 
 ```yaml
 # prometheus-security-alerts.yaml
@@ -807,8 +809,8 @@ groups:
           summary: "Anomalous telemetry data volume detected"
 ```
 
-## Related Documentation
+## 相關文件
 
-- [Production Deployment Guide](./02-production-deployment.md)
-- [Troubleshooting Playbook](./04-troubleshooting.md)
-- [Migration & Upgrade Guide](./10-migration-upgrade.md)
+- [生產環境部署指南](./02-production-deployment.md)
+- [疑難排解手冊](./04-troubleshooting.md)
+- [Migration 與升級指南](./10-migration-upgrade.md)

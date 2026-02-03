@@ -1,30 +1,30 @@
-# CI/CD Integration Patterns
+# CI/CD 整合模式
 
-> **Last Updated**: 2026-02-03
+> **最後更新**：2026-02-03
 
-This guide covers integrating Claude Code OTEL monitoring with various CI/CD platforms for automated observability, cost tracking, and quality gates.
+本指南涵蓋如何將 Claude Code OTEL 監控與各種 CI/CD 平台整合，以實現自動化可觀測性、成本追蹤和品質門檻。
 
-## Table of Contents
+## 目錄
 
-- [Overview](#overview)
+- [概述](#概述)
 - [GitHub Actions](#github-actions)
 - [GitLab CI](#gitlab-ci)
 - [Jenkins](#jenkins)
 - [CircleCI](#circleci)
 - [Azure DevOps](#azure-devops)
-- [Cost-Based Quality Gates](#cost-based-quality-gates)
-- [Automated Reporting](#automated-reporting)
+- [基於成本的品質門檻](#基於成本的品質門檻)
+- [自動化報告](#自動化報告)
 
-## Overview
+## 概述
 
-### Benefits of CI/CD Integration
+### CI/CD 整合的優勢
 
-1. **Automated Telemetry Collection**: Ensure all CI Claude Code usage is tracked
-2. **Cost Visibility**: Track costs per pipeline, branch, and PR
-3. **Quality Gates**: Block expensive operations from merging
-4. **Audit Trail**: Complete history of Claude Code usage in CI
+1. **自動化遙測收集**：確保所有 CI 中的 Claude Code 使用都被追蹤
+2. **成本可見性**：追蹤每個 pipeline、branch 和 PR 的成本
+3. **品質門檻**：阻止昂貴的操作被合併
+4. **稽核軌跡**：CI 中 Claude Code 使用的完整歷史記錄
 
-### Architecture
+### 架構
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -53,7 +53,7 @@ This guide covers integrating Claude Code OTEL monitoring with various CI/CD pla
 
 ## GitHub Actions
 
-### Basic Integration
+### 基本整合
 
 ```yaml
 # .github/workflows/claude-code-analysis.yml
@@ -109,7 +109,7 @@ jobs:
           path: analysis.json
 ```
 
-### With Cost Tracking
+### 帶成本追蹤
 
 ```yaml
 # .github/workflows/claude-with-cost-tracking.yml
@@ -170,7 +170,7 @@ jobs:
             })
 ```
 
-### Reusable Workflow
+### 可重用 Workflow
 
 ```yaml
 # .github/workflows/claude-code-reusable.yml
@@ -220,7 +220,7 @@ jobs:
 
 ## GitLab CI
 
-### Basic Integration
+### 基本整合
 
 ```yaml
 # .gitlab-ci.yml
@@ -274,7 +274,7 @@ security-review:
     - if: $CI_MERGE_REQUEST_ID
 ```
 
-### With Cost Gates
+### 帶成本門檻
 
 ```yaml
 # .gitlab-ci.yml
@@ -569,9 +569,9 @@ stages:
             displayName: Budget Check Failed
 ```
 
-## Cost-Based Quality Gates
+## 基於成本的品質門檻
 
-### Prometheus Alert for CI Costs
+### CI 成本的 Prometheus Alert
 
 ```yaml
 # prometheus-alerts.yaml
@@ -588,7 +588,7 @@ groups:
         annotations:
           summary: "CI pipeline {{ $labels.ci_pipeline_id }} exceeded cost budget"
 
-      - alert: DailyCI CostExceeded
+      - alert: DailyCICostExceeded
         expr: |
           sum(increase(claude_code_cost_total{environment="ci"}[24h])) > 500
         for: 5m
@@ -598,7 +598,7 @@ groups:
           summary: "Daily CI Claude Code costs exceeded $500"
 ```
 
-### GitHub Action Cost Gate
+### GitHub Action 成本門檻
 
 ```yaml
 # .github/actions/claude-cost-gate/action.yml
@@ -634,9 +634,9 @@ runs:
         fi
 ```
 
-## Automated Reporting
+## 自動化報告
 
-### Daily Cost Report Workflow
+### 每日成本報告 Workflow
 
 ```yaml
 # .github/workflows/daily-cost-report.yml
@@ -679,7 +679,7 @@ jobs:
             });
 ```
 
-### Slack Notification
+### Slack 通知
 
 ```yaml
 # Include in any pipeline
@@ -698,8 +698,8 @@ jobs:
     SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 ```
 
-## Related Documentation
+## 相關文件
 
-- [Cost Optimization Guide](./03-cost-optimization.md)
-- [Grafana Dashboard Development](./06-grafana-dashboards.md)
-- [Production Deployment Guide](./02-production-deployment.md)
+- [成本優化指南](./03-cost-optimization.md)
+- [Grafana Dashboard 開發](./06-grafana-dashboards.md)
+- [正式環境部署指南](./02-production-deployment.md)

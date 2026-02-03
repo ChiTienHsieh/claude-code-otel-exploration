@@ -70,6 +70,7 @@ export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 claude "hello world"
 
 # View results
+# NOTE: admin/admin is the default credential - CHANGE IN PRODUCTION!
 open http://localhost:3000  # Grafana (admin/admin)
 open http://localhost:16686 # Jaeger
 open http://localhost:9090  # Prometheus

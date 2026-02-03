@@ -1,25 +1,26 @@
-# Troubleshooting Playbook
+# 疑難排解手冊
 
-> **Last Updated**: 2026-02-03
+> **最後更新**: 2026-02-03
 
-A comprehensive guide to diagnosing and resolving common issues with Claude Code OTEL integration.
+這是一份診斷和解決 Claude Code OTEL 整合常見問題的完整指南。
 
-## Table of Contents
+## 目錄
 
-- [Quick Diagnostics](#quick-diagnostics)
-- [Common Issues](#common-issues)
-- [Debug Techniques](#debug-techniques)
-- [Collector Issues](#collector-issues)
-- [Backend Issues](#backend-issues)
-- [Performance Issues](#performance-issues)
-- [Network Issues](#network-issues)
+- [快速診斷](#快速診斷)
+- [常見問題](#常見問題)
+- [除錯技術](#除錯技術)
+- [Collector 問題](#collector-問題)
+- [Backend 問題](#backend-問題)
+- [效能問題](#效能問題)
+- [網路問題](#網路問題)
 
-## Quick Diagnostics
+## 快速診斷
 
-### Health Check Script
+### 健康檢查腳本
 
 ```bash
 #!/bin/bash
+set -euo pipefail
 # claude-otel-health-check.sh
 
 echo "=== Claude Code OTEL Health Check ==="
@@ -75,126 +76,126 @@ echo ""
 echo "=== Health Check Complete ==="
 ```
 
-### One-Line Diagnostic Commands
+### 單行診斷命令
 
 ```bash
-# Check if telemetry is enabled
+# 檢查 telemetry 是否啟用
 env | grep -E "(CLAUDE|OTEL)" | sort
 
-# Test OTLP endpoint connectivity
+# 測試 OTLP endpoint 連線
 curl -v http://localhost:4317 2>&1 | head -20
 
-# Check collector logs for errors
+# 檢查 collector logs 中的錯誤
 docker logs otel-collector 2>&1 | grep -i error | tail -20
 
-# Verify Prometheus is scraping
+# 驗證 Prometheus 是否正在抓取資料
 curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets[].health'
 
-# Check for Claude Code metrics in Prometheus
+# 在 Prometheus 中檢查 Claude Code metrics
 curl -s 'http://localhost:9090/api/v1/query?query=claude_code_session_count' | jq '.data.result'
 ```
 
-## Common Issues
+## 常見問題
 
-### Issue 1: No Telemetry Data Appearing
+### 問題 1：沒有出現 Telemetry 資料
 
-**Symptoms:**
-- Grafana dashboards show "No data"
-- Prometheus has no `claude_code_*` metrics
-- No output in OTEL Collector logs
+**症狀：**
+- Grafana dashboards 顯示「No data」
+- Prometheus 沒有 `claude_code_*` metrics
+- OTEL Collector logs 中沒有輸出
 
-**Diagnostic Steps:**
+**診斷步驟：**
 
 ```bash
-# Step 1: Verify telemetry is enabled
+# 步驟 1：驗證 telemetry 是否啟用
 echo $CLAUDE_CODE_ENABLE_TELEMETRY
-# Expected: 1
+# 預期：1
 
-# Step 2: Check exporter configuration
+# 步驟 2：檢查 exporter 配置
 echo $OTEL_METRICS_EXPORTER
 echo $OTEL_LOGS_EXPORTER
-# Expected: otlp (or console for debugging)
+# 預期：otlp（或用於除錯的 console）
 
-# Step 3: Test with console exporter first
+# 步驟 3：先用 console exporter 測試
 export OTEL_METRICS_EXPORTER=console
 export OTEL_LOGS_EXPORTER=console
 claude "hello"
-# Should see JSON output in terminal
+# 應該在終端機看到 JSON 輸出
 ```
 
-**Solutions:**
+**解決方案：**
 
 ```bash
-# Solution A: Enable telemetry
+# 方案 A：啟用 telemetry
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
 
-# Solution B: Fix endpoint
+# 方案 B：修正 endpoint
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 
-# Solution C: Use correct protocol
-export OTEL_EXPORTER_OTLP_PROTOCOL=grpc  # or http/protobuf
+# 方案 C：使用正確的 protocol
+export OTEL_EXPORTER_OTLP_PROTOCOL=grpc  # 或 http/protobuf
 ```
 
-### Issue 2: Connection Refused to OTEL Collector
+### 問題 2：連線到 OTEL Collector 被拒絕
 
-**Symptoms:**
-- Error: "connection refused"
-- Telemetry enabled but no data in backend
+**症狀：**
+- 錯誤：「connection refused」
+- Telemetry 已啟用但 backend 沒有資料
 
-**Diagnostic Steps:**
+**診斷步驟：**
 
 ```bash
-# Check if collector is running
+# 檢查 collector 是否正在執行
 docker ps | grep otel-collector
 
-# Check collector port bindings
+# 檢查 collector port 綁定
 docker port otel-collector
 
-# Test gRPC endpoint
+# 測試 gRPC endpoint
 grpcurl -plaintext localhost:4317 list
 
-# Test HTTP endpoint
+# 測試 HTTP endpoint
 curl -v http://localhost:4318/v1/metrics
 ```
 
-**Solutions:**
+**解決方案：**
 
 ```bash
-# Solution A: Start collector
+# 方案 A：啟動 collector
 docker compose up -d otel-collector
 
-# Solution B: Fix port mapping in docker-compose.yml
+# 方案 B：修正 docker-compose.yml 中的 port mapping
 # ports:
 #   - "4317:4317"
 #   - "4318:4318"
 
-# Solution C: Use host.docker.internal for Docker-to-host communication
+# 方案 C：使用 host.docker.internal 進行 Docker 到主機的通訊
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://host.docker.internal:4317
 ```
 
-### Issue 3: Metrics Missing Attributes
+### 問題 3：Metrics 缺少屬性
 
-**Symptoms:**
-- Team or environment labels not appearing
-- Resource attributes not propagating
+**症狀：**
+- 團隊或環境標籤沒有出現
+- Resource attributes 沒有傳播
 
-**Diagnostic Steps:**
+**診斷步驟：**
 
 ```bash
-# Check resource attributes
+# 檢查 resource attributes
 echo $OTEL_RESOURCE_ATTRIBUTES
 
-# Query Prometheus for label presence
+# 在 Prometheus 中查詢標籤是否存在
 curl -s 'http://localhost:9090/api/v1/query?query=claude_code_session_count' | jq '.data.result[].metric'
 ```
 
-**Solutions:**
+**解決方案：**
 
 ```bash
-# Solution: Set resource attributes correctly
+# 解決方案：正確設定 resource attributes
 export OTEL_RESOURCE_ATTRIBUTES="team=engineering,environment=production,service.name=claude-code"
 
-# For managed settings (settings.json):
+# 對於 managed 設定（settings.json）：
 {
   "env": {
     "OTEL_RESOURCE_ATTRIBUTES": "team=engineering,environment=production"
@@ -202,30 +203,30 @@ export OTEL_RESOURCE_ATTRIBUTES="team=engineering,environment=production,service
 }
 ```
 
-### Issue 4: High Memory Usage in Collector
+### 問題 4：Collector 記憶體使用過高
 
-**Symptoms:**
+**症狀：**
 - Collector OOM kills
-- High memory consumption
-- Slow metric processing
+- 記憶體消耗過高
+- Metric 處理緩慢
 
-**Diagnostic Steps:**
+**診斷步驟：**
 
 ```bash
-# Check collector memory usage
+# 檢查 collector 記憶體使用
 docker stats otel-collector
 
-# Check queue backlog
+# 檢查佇列積壓
 curl -s http://localhost:8888/metrics | grep queue
 
-# Check batch processor metrics
+# 檢查 batch processor metrics
 curl -s http://localhost:8888/metrics | grep batch
 ```
 
-**Solutions:**
+**解決方案：**
 
 ```yaml
-# Solution: Add memory limiter processor
+# 解決方案：新增 memory limiter processor
 processors:
   memory_limiter:
     check_interval: 1s
@@ -242,61 +243,61 @@ service:
       processors: [memory_limiter, batch]
 ```
 
-### Issue 5: SSL/TLS Certificate Errors
+### 問題 5：SSL/TLS 憑證錯誤
 
-**Symptoms:**
-- "certificate verify failed"
-- "x509: certificate signed by unknown authority"
+**症狀：**
+- 「certificate verify failed」
+- 「x509: certificate signed by unknown authority」
 
-**Diagnostic Steps:**
+**診斷步驟：**
 
 ```bash
-# Check certificate validity
+# 檢查憑證有效性
 openssl s_client -connect collector.example.com:4317 </dev/null 2>/dev/null | openssl x509 -text | head -20
 
-# Test with insecure flag (debug only)
+# 使用 insecure flag 測試（僅用於除錯）
 export OTEL_EXPORTER_OTLP_INSECURE=true
 claude "test"
 ```
 
-**Solutions:**
+**解決方案：**
 
 ```bash
-# Solution A: Provide CA certificate
+# 方案 A：提供 CA 憑證
 export OTEL_EXPORTER_OTLP_CERTIFICATE=/path/to/ca.crt
 
-# Solution B: For mTLS, provide client certs
+# 方案 B：對於 mTLS，提供客戶端憑證
 export OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE=/path/to/client.crt
 export OTEL_EXPORTER_OTLP_CLIENT_KEY=/path/to/client.key
 
-# Solution C: Use insecure for internal testing only
+# 方案 C：僅用於內部測試時使用 insecure
 export OTEL_EXPORTER_OTLP_INSECURE=true
 ```
 
-### Issue 6: Duplicate Metrics
+### 問題 6：重複的 Metrics
 
-**Symptoms:**
-- Same metric reported multiple times
-- Inflated counts in dashboards
+**症狀：**
+- 相同的 metric 被報告多次
+- Dashboards 中的計數被誇大
 
-**Diagnostic Steps:**
+**診斷步驟：**
 
 ```bash
-# Check for multiple exporters
+# 檢查是否有多個 exporters
 echo $OTEL_METRICS_EXPORTER
-# Should not have duplicates like "otlp,otlp"
+# 不應該有重複，如 "otlp,otlp"
 
-# Check Prometheus for duplicate targets
+# 在 Prometheus 中檢查重複的 targets
 curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets | length'
 ```
 
-**Solutions:**
+**解決方案：**
 
 ```bash
-# Solution A: Use single exporter
+# 方案 A：使用單一 exporter
 export OTEL_METRICS_EXPORTER=otlp
 
-# Solution B: Configure deduplication in Prometheus
+# 方案 B：在 Prometheus 中配置去重
 # prometheus.yml
 scrape_configs:
   - job_name: 'otel-collector'
@@ -305,21 +306,21 @@ scrape_configs:
       - targets: ['otel-collector:8889']
 ```
 
-## Debug Techniques
+## 除錯技術
 
-### Enable Debug Logging
+### 啟用 Debug Logging
 
 ```bash
-# Console output for all signals
+# 所有信號的 console 輸出
 export OTEL_METRICS_EXPORTER=console,otlp
 export OTEL_LOGS_EXPORTER=console,otlp
 export OTEL_TRACES_EXPORTER=console,otlp
 
-# Run Claude Code and observe output
+# 執行 Claude Code 並觀察輸出
 claude "test prompt" 2>&1 | tee claude-debug.log
 ```
 
-### Collector Debug Mode
+### Collector Debug 模式
 
 ```yaml
 # otel-collector-config.yaml
@@ -338,20 +339,20 @@ service:
       level: debug
 ```
 
-### Trace OTLP Traffic
+### 追蹤 OTLP 流量
 
 ```bash
-# Use tcpdump to capture OTLP traffic
+# 使用 tcpdump 擷取 OTLP 流量
 sudo tcpdump -i any -w otlp-traffic.pcap port 4317
 
-# Analyze with Wireshark or tshark
+# 使用 Wireshark 或 tshark 分析
 tshark -r otlp-traffic.pcap -Y "tcp.port == 4317"
 ```
 
-### Test Exporter Manually
+### 手動測試 Exporter
 
 ```bash
-# Send test metrics via OTLP HTTP
+# 透過 OTLP HTTP 發送測試 metrics
 curl -X POST http://localhost:4318/v1/metrics \
   -H "Content-Type: application/json" \
   -d '{
@@ -371,80 +372,83 @@ curl -X POST http://localhost:4318/v1/metrics \
   }'
 ```
 
-## Collector Issues
+## Collector 問題
 
-### Collector Not Starting
+### Collector 無法啟動
 
 ```bash
-# Check configuration syntax
+# 檢查配置語法
 docker run --rm -v $(pwd)/otel-collector-config.yaml:/etc/otel/config.yaml \
   otel/opentelemetry-collector-contrib:latest validate --config=/etc/otel/config.yaml
 
-# Check for port conflicts
+# 檢查 port 衝突
 lsof -i :4317
 lsof -i :4318
 
-# View startup logs
+# 檢視啟動 logs
 docker logs otel-collector 2>&1 | head -50
 ```
 
-### Pipeline Processing Failures
+### Pipeline 處理失敗
 
 ```bash
-# Check processor errors
+# 檢查 processor 錯誤
 docker logs otel-collector 2>&1 | grep -i "processor"
 
-# Monitor dropped metrics
+# 監控丟棄的 metrics
 curl -s http://localhost:8888/metrics | grep -E "(dropped|failed)"
 ```
 
-## Backend Issues
+## Backend 問題
 
-### Prometheus Not Receiving Data
+### Prometheus 未接收資料
 
 ```bash
-# Check remote write status
+# 檢查 remote write 狀態
 curl -s http://localhost:9090/api/v1/status/runtimeinfo | jq '.data.reloadConfigSuccess'
 
-# Verify scrape targets
+# 驗證 scrape targets
 curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | {job: .labels.job, health: .health, lastError: .lastError}'
 
-# Check storage status
+# 檢查儲存狀態
 curl -s http://localhost:9090/api/v1/status/tsdb | jq '.data'
 ```
 
-### Grafana Dashboard Empty
+### Grafana Dashboard 空白
+
+> **安全警告**：以下範例使用預設憑證（admin/admin）。
+> **在 Production 環境中請務必更改** - 切勿在非開發環境中使用預設憑證。
 
 ```bash
-# Test Prometheus datasource
+# 測試 Prometheus datasource
 curl -s "http://admin:admin@localhost:3000/api/datasources/proxy/1/api/v1/query?query=up" | jq '.status'
 
-# Check dashboard provisioning
+# 檢查 dashboard provisioning
 docker logs grafana 2>&1 | grep -i "dashboard"
 
-# Verify datasource configuration
+# 驗證 datasource 配置
 curl -s "http://admin:admin@localhost:3000/api/datasources" | jq '.[].name'
 ```
 
-## Performance Issues
+## 效能問題
 
-### High Latency in Claude Code
+### Claude Code 高延遲
 
 ```bash
-# Check if telemetry is adding overhead
-# Disable and compare
+# 檢查 telemetry 是否增加額外開銷
+# 停用並比較
 unset CLAUDE_CODE_ENABLE_TELEMETRY
 time claude "test"
 
-# Re-enable and compare
+# 重新啟用並比較
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
 time claude "test"
 ```
 
-### Collector Backpressure
+### Collector 背壓
 
 ```yaml
-# Add sending queue for backpressure handling
+# 新增 sending queue 處理背壓
 exporters:
   prometheusremotewrite:
     endpoint: http://prometheus:9090/api/v1/write
@@ -458,59 +462,59 @@ exporters:
       max_interval: 30s
 ```
 
-## Network Issues
+## 網路問題
 
-### DNS Resolution Failures
+### DNS 解析失敗
 
 ```bash
-# Test DNS resolution
+# 測試 DNS 解析
 nslookup otel-collector.example.com
 
-# Use IP address directly
+# 直接使用 IP 位址
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://10.0.0.50:4317
 ```
 
-### Firewall Blocking
+### 防火牆阻擋
 
 ```bash
-# Check if ports are open
+# 檢查 ports 是否開放
 nc -zv localhost 4317
 nc -zv localhost 4318
 
-# Test through firewall
+# 透過防火牆測試
 telnet collector.example.com 4317
 ```
 
-### Proxy Configuration
+### Proxy 配置
 
 ```bash
-# If behind corporate proxy
+# 如果在企業 proxy 後面
 export HTTP_PROXY=http://proxy.company.com:8080
 export HTTPS_PROXY=http://proxy.company.com:8080
 export NO_PROXY=localhost,127.0.0.1,.internal
 ```
 
-## Error Reference
+## 錯誤參考
 
-| Error Message | Cause | Solution |
+| 錯誤訊息 | 原因 | 解決方案 |
 |--------------|-------|----------|
-| `connection refused` | Collector not running | Start collector |
-| `deadline exceeded` | Network timeout | Check network/firewall |
-| `certificate verify failed` | TLS certificate issue | Configure certificates |
-| `resource exhausted` | Collector overloaded | Add memory limits |
-| `invalid endpoint` | Malformed URL | Check endpoint format |
-| `permission denied` | File/port access | Check permissions |
-| `unknown authority` | CA not trusted | Add CA certificate |
+| `connection refused` | Collector 未執行 | 啟動 collector |
+| `deadline exceeded` | 網路逾時 | 檢查網路/防火牆 |
+| `certificate verify failed` | TLS 憑證問題 | 配置憑證 |
+| `resource exhausted` | Collector 過載 | 增加記憶體限制 |
+| `invalid endpoint` | URL 格式錯誤 | 檢查 endpoint 格式 |
+| `permission denied` | 檔案/port 存取權限 | 檢查權限 |
+| `unknown authority` | CA 不受信任 | 新增 CA 憑證 |
 
-## Support Resources
+## 支援資源
 
-- [OpenTelemetry Documentation](https://opentelemetry.io/docs/)
-- [OTEL Collector Troubleshooting](https://opentelemetry.io/docs/collector/troubleshooting/)
-- [Prometheus Troubleshooting](https://prometheus.io/docs/prometheus/latest/troubleshooting/)
-- [Grafana Troubleshooting](https://grafana.com/docs/grafana/latest/troubleshooting/)
+- [OpenTelemetry 文件](https://opentelemetry.io/docs/)
+- [OTEL Collector 疑難排解](https://opentelemetry.io/docs/collector/troubleshooting/)
+- [Prometheus 疑難排解](https://prometheus.io/docs/prometheus/latest/troubleshooting/)
+- [Grafana 疑難排解](https://grafana.com/docs/grafana/latest/troubleshooting/)
 
-## Related Documentation
+## 相關文件
 
-- [Production Deployment Guide](./02-production-deployment.md)
-- [Security Hardening Guide](./11-security-hardening.md)
-- [OTEL Collector Setup](../TUTORIAL_OTEL_zh-TW.md)
+- [Production 部署指南](./02-production-deployment.md)
+- [安全加固指南](./11-security-hardening.md)
+- [OTEL Collector 設置](../TUTORIAL_OTEL_zh-TW.md)

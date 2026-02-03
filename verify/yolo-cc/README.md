@@ -13,24 +13,24 @@
 
 ## Quick Start
 
-### 方法一：使用 docker-compose（推薦）
+### 方法一：使用 docker compose（推薦）
 
 ```bash
 # 先設定 API Key
 export ANTHROPIC_API_KEY=sk-ant-xxxxx
 
 # 啟動完整 stack（包含 YOLO CC）
-docker-compose --profile yolo up -d
+docker compose --profile yolo up -d
 
 # 進入 Claude Code container
-docker-compose exec yolo-cc claude
+docker compose exec yolo-cc claude
 ```
 
 ### 方法二：手動 Build & Run
 
 ```bash
 # 1. 確保 OTEL stack 已啟動
-docker-compose up -d
+docker compose up -d
 
 # 2. Build image
 docker build -t claude-code-otel-verify ./yolo-cc
@@ -72,10 +72,10 @@ docker run -it --rm \
 ```bash
 # Terminal 1: 啟動 OTEL stack
 cd verify
-docker-compose up -d
+docker compose up -d
 
 # 確認都起來了
-docker-compose ps
+docker compose ps
 ```
 
 ### 2. 執行 Claude Code
@@ -97,7 +97,7 @@ docker run -it --rm \
 
 ```bash
 # Terminal 3: 看 Collector logs
-docker-compose logs -f otel-collector
+docker compose logs -f otel-collector
 
 # 或開瀏覽器
 # Grafana: http://localhost:3000
@@ -133,7 +133,7 @@ docker run -it --rm \
 docker network ls
 
 # 應該看到 verify_otel-net
-# 如果沒有，先 docker-compose up -d
+# 如果沒有，先 docker compose up -d
 ```
 
 ### Claude Code 沒啟動 telemetry？

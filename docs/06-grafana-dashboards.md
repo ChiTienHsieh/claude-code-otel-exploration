@@ -1,29 +1,29 @@
-# Grafana Dashboard Development Guide
+# Grafana Dashboard 開發指南
 
-> **Last Updated**: 2026-02-03
+> **最後更新**：2026-02-03
 
-A step-by-step guide to creating, customizing, and managing Grafana dashboards for Claude Code monitoring.
+本指南逐步說明如何為 Claude Code 監控建立、自訂和管理 Grafana dashboards。
 
-## Table of Contents
+## 目錄
 
-- [Getting Started](#getting-started)
-- [Dashboard Structure](#dashboard-structure)
-- [Creating Panels](#creating-panels)
-- [PromQL for Claude Code](#promql-for-claude-code)
-- [Variables and Templates](#variables-and-templates)
-- [Alerting](#alerting)
-- [Best Practices](#best-practices)
-- [Complete Dashboard JSON](#complete-dashboard-json)
+- [開始使用](#開始使用)
+- [Dashboard 結構](#dashboard-結構)
+- [建立 Panels](#建立-panels)
+- [Claude Code 的 PromQL](#claude-code-的-promql)
+- [變數與範本](#變數與範本)
+- [警報](#警報)
+- [最佳實踐](#最佳實踐)
+- [完整 Dashboard JSON](#完整-dashboard-json)
 
-## Getting Started
+## 開始使用
 
-### Prerequisites
+### 前置需求
 
-- Grafana 9.0+ installed
-- Prometheus datasource configured
-- Claude Code metrics being collected
+- 已安裝 Grafana 9.0+
+- 已設定 Prometheus datasource
+- Claude Code metrics 正在收集中
 
-### Access Grafana
+### 存取 Grafana
 
 ```bash
 # If using the verify environment
@@ -35,17 +35,17 @@ open http://localhost:3000
 # Password: admin
 ```
 
-### Add Prometheus Datasource
+### 新增 Prometheus Datasource
 
-1. Go to Configuration → Data Sources
-2. Click "Add data source"
-3. Select "Prometheus"
-4. Set URL: `http://prometheus:9090`
-5. Click "Save & Test"
+1. 前往 Configuration → Data Sources
+2. 點擊「Add data source」
+3. 選擇「Prometheus」
+4. 設定 URL：`http://prometheus:9090`
+5. 點擊「Save & Test」
 
-## Dashboard Structure
+## Dashboard 結構
 
-### Recommended Layout
+### 建議配置
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -79,9 +79,9 @@ open http://localhost:3000
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-## Creating Panels
+## 建立 Panels
 
-### Panel 1: Total Sessions (Stat)
+### Panel 1：Total Sessions (Stat)
 
 ```json
 {
@@ -117,7 +117,7 @@ open http://localhost:3000
 }
 ```
 
-### Panel 2: Total Tokens (Stat)
+### Panel 2：Total Tokens (Stat)
 
 ```json
 {
@@ -138,7 +138,7 @@ open http://localhost:3000
 }
 ```
 
-### Panel 3: Total Cost (Stat)
+### Panel 3：Total Cost (Stat)
 
 ```json
 {
@@ -166,7 +166,7 @@ open http://localhost:3000
 }
 ```
 
-### Panel 4: Token Usage Over Time (Time Series)
+### Panel 4：Token Usage Over Time (Time Series)
 
 ```json
 {
@@ -213,7 +213,7 @@ open http://localhost:3000
 }
 ```
 
-### Panel 5: Cost by Team (Pie Chart)
+### Panel 5：Cost by Team (Pie Chart)
 
 ```json
 {
@@ -244,7 +244,7 @@ open http://localhost:3000
 }
 ```
 
-### Panel 6: Sessions by Environment (Bar Chart)
+### Panel 6：Sessions by Environment (Bar Chart)
 
 ```json
 {
@@ -273,7 +273,7 @@ open http://localhost:3000
 }
 ```
 
-### Panel 7: Activity Heatmap
+### Panel 7：Activity Heatmap
 
 ```json
 {
@@ -299,7 +299,7 @@ open http://localhost:3000
 }
 ```
 
-### Panel 8: Tool Usage Table
+### Panel 8：Tool Usage Table
 
 ```json
 {
@@ -345,9 +345,9 @@ open http://localhost:3000
 }
 ```
 
-## PromQL for Claude Code
+## Claude Code 的 PromQL
 
-### Essential Queries
+### 基本查詢
 
 ```promql
 # Total sessions in time range
@@ -369,7 +369,7 @@ sum(claude_code_tokens_input + claude_code_tokens_output) / sum(claude_code_sess
 sum(claude_code_cost_total) / (sum(claude_code_tokens_input) + sum(claude_code_tokens_output))
 ```
 
-### Advanced Queries
+### 進階查詢
 
 ```promql
 # Token usage anomaly detection (Z-score)
@@ -393,9 +393,9 @@ topk(5, sum(increase(claude_code_cost_total[24h])) by (team))
 histogram_quantile(0.95, sum(rate(claude_code_session_duration_bucket[5m])) by (le))
 ```
 
-## Variables and Templates
+## 變數與範本
 
-### Team Variable
+### Team 變數
 
 ```json
 {
@@ -410,7 +410,7 @@ histogram_quantile(0.95, sum(rate(claude_code_session_duration_bucket[5m])) by (
 }
 ```
 
-### Environment Variable
+### Environment 變數
 
 ```json
 {
@@ -425,7 +425,7 @@ histogram_quantile(0.95, sum(rate(claude_code_session_duration_bucket[5m])) by (
 }
 ```
 
-### Model Variable
+### Model 變數
 
 ```json
 {
@@ -438,9 +438,9 @@ histogram_quantile(0.95, sum(rate(claude_code_session_duration_bucket[5m])) by (
 }
 ```
 
-## Alerting
+## 警報
 
-### Alert Rules in Dashboard
+### Dashboard 中的警報規則
 
 ```json
 {
@@ -471,7 +471,7 @@ histogram_quantile(0.95, sum(rate(claude_code_session_duration_bucket[5m])) by (
 }
 ```
 
-### Unified Alerting Rule
+### Unified Alerting 規則
 
 ```yaml
 # alert-rules.yaml (Grafana 9+)
@@ -502,15 +502,15 @@ groups:
           severity: warning
 ```
 
-## Best Practices
+## 最佳實踐
 
-### 1. Panel Organization
+### 1. Panel 組織
 
-- Group related panels in rows
-- Use collapsible rows for detailed views
-- Keep overview panels at the top
+- 將相關的 panels 分組在 rows 中
+- 使用可折疊的 rows 顯示詳細視圖
+- 將概覽 panels 放在最上方
 
-### 2. Color Consistency
+### 2. 顏色一致性
 
 ```json
 {
@@ -538,7 +538,7 @@ groups:
 }
 ```
 
-### 3. Meaningful Thresholds
+### 3. 有意義的閾值
 
 ```json
 {
@@ -573,7 +573,7 @@ groups:
 }
 ```
 
-## Complete Dashboard JSON
+## 完整 Dashboard JSON
 
 ```json
 {
@@ -753,7 +753,7 @@ groups:
 
 ## Provisioning Dashboards
 
-### Directory Structure
+### 目錄結構
 
 ```
 grafana/
@@ -766,7 +766,7 @@ grafana/
 │       └── datasources.yml
 ```
 
-### Dashboard Provisioning Config
+### Dashboard Provisioning 設定
 
 ```yaml
 # dashboard.yml
@@ -782,8 +782,8 @@ providers:
       path: /etc/grafana/provisioning/dashboards/json
 ```
 
-## Related Documentation
+## 相關文件
 
-- [Data Export & Analysis Guide](./08-data-export-analysis.md)
-- [Cost Optimization Guide](./03-cost-optimization.md)
-- [Troubleshooting Playbook](./04-troubleshooting.md)
+- [資料匯出與分析指南](./08-data-export-analysis.md)
+- [成本優化指南](./03-cost-optimization.md)
+- [故障排除手冊](./04-troubleshooting.md)

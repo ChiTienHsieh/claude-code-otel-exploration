@@ -365,7 +365,7 @@ service:
 啟動：
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 方法三：搭配 Grafana Stack（完整 Observability）
