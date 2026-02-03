@@ -56,7 +56,7 @@ Jaeger is an open-source distributed tracing platform that helps:
 
 ```yaml
 # docker-compose.yaml
-version: '3.8'
+# 注意：OTLP ports 只在 otel-collector 上暴露，避免 port 衝突
 
 services:
   jaeger:
@@ -66,11 +66,10 @@ services:
       - "6832:6832/udp"   # Jaeger Thrift binary
       - "5778:5778"       # Config server
       - "16686:16686"     # UI
-      - "4317:4317"       # OTLP gRPC
-      - "4318:4318"       # OTLP HTTP
       - "14250:14250"     # Model/Collector gRPC
       - "14268:14268"     # Jaeger Thrift HTTP
       - "14269:14269"     # Health check
+      # 注意：4317/4318 由 otel-collector 處理，不在此暴露
     environment:
       - COLLECTOR_OTLP_ENABLED=true
       - SPAN_STORAGE_TYPE=badger
@@ -89,9 +88,9 @@ services:
     image: otel/opentelemetry-collector-contrib:0.96.0
     command: ["--config=/etc/otel-collector-config.yaml"]
     ports:
-      - "4317:4317"
-      - "4318:4318"
-      - "8888:8888"
+      - "4317:4317"   # OTLP gRPC - 唯一入口點
+      - "4318:4318"   # OTLP HTTP - 唯一入口點
+      - "8888:8888"   # Collector metrics
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     depends_on:

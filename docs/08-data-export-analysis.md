@@ -145,10 +145,10 @@ sum(increase(claude_code_cost_total[7d]))
 -
 sum(increase(claude_code_cost_total[7d] offset 7d))
 
-# Month-to-date cost
-sum(increase(claude_code_cost_total[
-  # Dynamic: days since month start
-]))
+# Month-to-date cost (本月至今成本)
+# 使用 day_of_month() 函數計算動態時間範圍
+sum(increase(claude_code_cost_total[30d]))
+  * (day_of_month(vector(time())) / 30)
 ```
 
 ### API Metrics

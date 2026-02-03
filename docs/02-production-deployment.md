@@ -690,23 +690,33 @@ exporters:
       storage: file_storage
 ```
 
-### Backup Exporter
+### Backup Exporter (使用多 Pipeline 方式)
 
 ```yaml
-# Configure fallback exporter
+# 設定備援 exporter - 使用雙 pipeline 寫入
 exporters:
   prometheusremotewrite/primary:
     endpoint: http://prometheus-primary:9090/api/v1/write
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
 
   prometheusremotewrite/backup:
     endpoint: http://prometheus-backup:9090/api/v1/write
-
-  failover:
     retry_on_failure:
       enabled: true
-    exporters:
-      - prometheusremotewrite/primary
-      - prometheusremotewrite/backup
+
+service:
+  pipelines:
+    metrics/primary:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheusremotewrite/primary]
+    metrics/backup:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheusremotewrite/backup]
 ```
 
 ## Resource Planning
