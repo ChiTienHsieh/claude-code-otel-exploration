@@ -353,7 +353,7 @@ OpenCode 作為開源專案，有潛力追上甚至超越 Claude Code：
 ## 參考資源
 
 ### Claude Code
-- [官方文件 - Monitoring Usage](https://code.claude.com/docs/en/monitoring-usage) - 最新 OTEL 配置說明
+- [官方文件 - Monitoring Usage](https://docs.anthropic.com/en/docs/claude-code/telemetry) - 最新 OTEL 配置說明
 - [Grafana 整合教學](https://quesma.com/blog/track-claude-code-usage-and-limits-with-grafana-cloud/)
 - [SigNoz 整合指南](https://signoz.io/docs/claude-code-monitoring/) - 包含 Traces 整合範例
 - [Honeycomb 深度分析](https://www.honeycomb.io/blog/can-claude-code-observe-its-own-code) - Claude Code span 分析
